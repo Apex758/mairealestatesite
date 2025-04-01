@@ -1,13 +1,16 @@
+// Updated Property Page using PropertyStore
+// File: src/pages/PropertyPage.tsx
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { PropertyDetails } from '../components/PropertyDetails';
 import { StackedImageSlider } from '../components/StackedImageSlider';
 import { CurrencyConverter } from '../components/CurrencyConverter';
-import { usePropertyStore } from '../stores/propertyStore';
+import { usePropertyStore, Property } from '../stores/propertyStore';
 
 interface PropertyPageProps {
-  previewData?: any; // For preview mode
+  previewData?: Property; // For preview mode
 }
 
 export function PropertyPage({ previewData }: PropertyPageProps) {
@@ -22,9 +25,9 @@ export function PropertyPage({ previewData }: PropertyPageProps) {
   // Use preview data if provided, otherwise find property from store
   const property = previewData || properties.find(p => p.id === id);
 
-  // Redirect to home if property not found (only in non-preview mode)
+  // Redirect to home if property not found (only in non-preview mode) or not published
   useEffect(() => {
-    if (!previewData && !property) {
+    if (!previewData && (!property || !property.published)) {
       navigate('/');
     }
   }, [property, navigate, previewData]);
@@ -41,8 +44,9 @@ export function PropertyPage({ previewData }: PropertyPageProps) {
     return null;
   }
 
+  // Get similar properties (excluding current one, filter by published only)
   const similarProperties = properties
-    .filter(p => p.id !== property.id)
+    .filter(p => p.id !== property.id && p.published)
     .slice(0, 3)
     .map(p => ({
       id: p.id,
@@ -135,6 +139,8 @@ export function PropertyPage({ previewData }: PropertyPageProps) {
               retailDining: property.features.retailDining
             }}
             location={{
+              lat: property.location.lat,
+              lng: property.location.lng,
               distances: property.location.distances
             }}
             similarProperties={similarProperties}

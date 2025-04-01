@@ -1,68 +1,17 @@
-import React, { useState } from 'react';
-import { PropertyCard } from '../components/PropertyCard';
+// Updated Listings Page using the PropertyStore
+// File: src/pages/Listings.tsx
 
-// Import all listings data
-const allProperties = [
-  {
-    id: "1",
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80",
-    price: "$1,250,000",
-    address: "Binghatti Hillviews, Dubai Marina",
-    beds: 4,
-    baths: 3,
-    sqft: 2800
-  },
-  {
-    id: "2",
-    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80",
-    price: "$980,000",
-    address: "Mercedes-Benz Places, Downtown Dubai",
-    beds: 3,
-    baths: 2,
-    sqft: 2200
-  },
-  {
-    id: "3",
-    image: "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&q=80",
-    price: "$1,450,000",
-    address: "Bugatti Residences, Business Bay",
-    beds: 5,
-    baths: 4,
-    sqft: 3200
-  },
-  {
-    id: "4",
-    image: "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?auto=format&fit=crop&q=80",
-    price: "$2,100,000",
-    address: "321 Ocean View Dr, Dubai Marina",
-    beds: 6,
-    baths: 5,
-    sqft: 4500
-  },
-  {
-    id: "5",
-    image: "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?auto=format&fit=crop&q=80",
-    price: "$875,000",
-    address: "567 Palm Springs Ave, Palm Jumeirah",
-    beds: 3,
-    baths: 2,
-    sqft: 1800
-  },
-  {
-    id: "6",
-    image: "https://images.unsplash.com/photo-1600566752355-35792bedcfea?auto=format&fit=crop&q=80",
-    price: "$1,750,000",
-    address: "890 Highland Park, Business Bay",
-    beds: 4,
-    baths: 3,
-    sqft: 3200
-  }
-];
+import React, { useState, useEffect } from 'react';
+import { PropertyCard } from '../components/PropertyCard';
+import { usePropertyStore, formatPrice } from '../stores/propertyStore';
+import { CurrencyConverter } from '../components/CurrencyConverter';
 
 const locations = ['Dubai Marina', 'Downtown Dubai', 'Business Bay', 'Palm Jumeirah'];
 const propertyTypes = ['Apartment', 'Penthouse', 'Villa', 'Townhouse'];
 
 export function Listings() {
+  const properties = usePropertyStore(state => state.properties);
+  const [filteredProperties, setFilteredProperties] = useState(properties);
   const [filters, setFilters] = useState({
     location: '',
     propertyType: '',
@@ -71,6 +20,49 @@ export function Listings() {
     minPrice: '',
     maxPrice: '',
   });
+
+  // Apply filters whenever they change
+  useEffect(() => {
+    let result = [...properties];
+    
+    // Filter by location
+    if (filters.location) {
+      result = result.filter(property => 
+        property.address.includes(filters.location)
+      );
+    }
+    
+    // Filter by min beds
+    if (filters.minBeds) {
+      result = result.filter(property => 
+        property.beds >= parseInt(filters.minBeds)
+      );
+    }
+    
+    // Filter by max beds
+    if (filters.maxBeds) {
+      result = result.filter(property => 
+        property.beds <= parseInt(filters.maxBeds)
+      );
+    }
+    
+    // Filter by min price
+    if (filters.minPrice) {
+      const minPrice = parseInt(filters.minPrice.replace(/,/g, ''));
+      result = result.filter(property => property.price >= minPrice);
+    }
+    
+    // Filter by max price
+    if (filters.maxPrice) {
+      const maxPrice = parseInt(filters.maxPrice.replace(/,/g, ''));
+      result = result.filter(property => property.price <= maxPrice);
+    }
+    
+    // Only show published properties
+    result = result.filter(property => property.published);
+    
+    setFilteredProperties(result);
+  }, [properties, filters]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -199,11 +191,39 @@ export function Listings() {
 
       {/* Properties Grid */}
       <main className="max-w-7xl mx-auto px-4 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {allProperties.map((property) => (
-            <PropertyCard key={property.id} {...property} />
-          ))}
-        </div>
+        {filteredProperties.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredProperties.map((property) => (
+              <PropertyCard 
+                key={property.id}
+                id={property.id}
+                image={property.image}
+                price={<CurrencyConverter amount={property.price} baseCurrency={property.currency} />}
+                address={property.address}
+                beds={property.beds}
+                baths={property.baths}
+                sqft={property.sqft}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <h3 className="text-2xl font-light text-gray-500">No properties match your search criteria</h3>
+            <button 
+              onClick={() => setFilters({
+                location: '',
+                propertyType: '',
+                minBeds: '',
+                maxBeds: '',
+                minPrice: '',
+                maxPrice: '',
+              })}
+              className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+            >
+              Clear Filters
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );

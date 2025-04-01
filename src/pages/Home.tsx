@@ -1,38 +1,12 @@
+// Updated Home Page using PropertyStore
+// File: src/pages/Home.tsx
+
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, Bitcoin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PropertyCard } from '../components/PropertyCard';
 import { CurrencyConverter } from '../components/CurrencyConverter';
-
-const featuredProperties = [
-  {
-    id: "1",
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80",
-    price: 1250000,
-    address: "Binghatti Hillviews, Dubai Marina",
-    beds: 4,
-    baths: 3,
-    sqft: 2800
-  },
-  {
-    id: "2",
-    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80",
-    price: 980000,
-    address: "Mercedes-Benz Places, Downtown Dubai",
-    beds: 3,
-    baths: 2,
-    sqft: 2200
-  },
-  {
-    id: "3",
-    image: "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&q=80",
-    price: 1450000,
-    address: "Bugatti Residences, Business Bay",
-    beds: 5,
-    baths: 4,
-    sqft: 3200
-  }
-];
+import { usePropertyStore } from '../stores/propertyStore';
 
 const gridSections = [
   {
@@ -74,6 +48,11 @@ export function Home() {
   const parallaxRef = useRef<HTMLDivElement | null>(null);
   const [currentPropertyType, setCurrentPropertyType] = useState(0);
   const [currentPaymentType, setCurrentPaymentType] = useState(0);
+  
+  // Get properties from the store
+  const properties = usePropertyStore(state => 
+    state.properties.filter(p => p.published).slice(0, 3)
+  );
 
   useEffect(() => {
     const handleScroll = () => {
@@ -223,19 +202,27 @@ export function Home() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProperties.map((property) => (
-              <div key={property.id}>
-                <PropertyCard 
-                  id={property.id}
-                  image={property.image}
-                  price={<CurrencyConverter amount={property.price} baseCurrency="USD" />}
-                  address={property.address}
-                  beds={property.beds}
-                  baths={property.baths}
-                  sqft={property.sqft}
-                />
-              </div>
+            {properties.map((property) => (
+              <PropertyCard 
+                key={property.id}
+                id={property.id}
+                image={property.image}
+                price={<CurrencyConverter amount={property.price} baseCurrency={property.currency} />}
+                address={property.address}
+                beds={property.beds}
+                baths={property.baths}
+                sqft={property.sqft}
+              />
             ))}
+          </div>
+          
+          <div className="text-center mt-12">
+            <Link 
+              to="/listings"
+              className="inline-block px-8 py-4 bg-gray-900 text-white rounded-full hover:bg-gray-800"
+            >
+              View All Properties
+            </Link>
           </div>
         </div>
       </div>

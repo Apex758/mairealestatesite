@@ -1,3 +1,6 @@
+// Updated Page Manager with Enhanced Property Store Integration
+// File: src/pages/PageManager.tsx
+
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { 
@@ -22,7 +25,7 @@ import {
 import { SortableImageGrid } from '../components/SortableImageGrid';
 import { GoogleMap } from '../components/GoogleMap';
 import { HostingSettings } from '../components/HostingSettings';
-import { usePropertyStore } from '../stores/propertyStore';
+import { usePropertyStore, Property } from '../stores/propertyStore';
 import { PropertyPreview } from '../components/PropertyPreview';
 
 // Predefined amenity categories and options
@@ -74,45 +77,6 @@ const amenityCategories = {
   }
 };
 
-interface PropertyDetails {
-  title: string;
-  price: number;
-  currency: string;
-  address: string;
-  location: {
-    lat: number;
-    lng: number;
-  };
-  beds: number;
-  baths: number;
-  sqft: number;
-  description: string;
-  features: {
-    residences: string[];
-    luxuryWellness: string[];
-    retailDining: string[];
-  };
-  amenities: {
-    residences: string[];
-    luxuryWellness: string[];
-    retailDining: string[];
-    security: string[];
-  };
-  images: string[];
-}
-
-interface Page {
-  id: string;
-  type: 'listing';
-  title: string;
-  slug: string;
-  propertyDetails: PropertyDetails;
-  sections: any[];
-  published: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 interface HostingConfig {
   provider: string;
   siteId: string;
@@ -123,31 +87,13 @@ interface HostingConfig {
   deployedUrl: string;
   lastDeployed: Date | null;
   status: 'ready' | 'building' | 'deployed' | 'error';
+  apiKeys: {
+    googleMaps: string;
+    exchangeRate: string;
+    cryptoExchange: string;
+    analytics: string;
+  };
 }
-
-const DEFAULT_PROPERTY: PropertyDetails = {
-  title: 'New Property Listing',
-  price: 0,
-  currency: 'USD',
-  address: '',
-  location: { lat: 25.2048, lng: 55.2708 }, // Dubai default coordinates
-  beds: 0,
-  baths: 0,
-  sqft: 0,
-  description: '',
-  features: {
-    residences: [],
-    luxuryWellness: [],
-    retailDining: []
-  },
-  amenities: {
-    residences: [],
-    luxuryWellness: [],
-    retailDining: [],
-    security: []
-  },
-  images: []
-};
 
 const DEFAULT_HOSTING: HostingConfig = {
   provider: 'netlify',
@@ -158,110 +104,63 @@ const DEFAULT_HOSTING: HostingConfig = {
   outputDir: 'dist',
   deployedUrl: '',
   lastDeployed: null,
-  status: 'ready'
+  status: 'ready',
+  apiKeys: {
+    googleMaps: '',
+    exchangeRate: '',
+    cryptoExchange: '',
+    analytics: ''
+  }
 };
 
 export function PageManager() {
-  const [listings, setListings] = useState<Page[]>([]);
-  const [activeListing, setActiveListing] = useState<string | null>(null);
+  const [activeProperty, setActiveProperty] = useState<string | null>(null);
   const [editingMode, setEditingMode] = useState<'details' | 'slideshow' | 'location' | 'amenities' | 'hosting' | 'content'>('details');
   const [hostingConfig, setHostingConfig] = useState<HostingConfig>(DEFAULT_HOSTING);
-  const [previewMode, setPreviewMode] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<keyof typeof amenityCategories>('residences');
   const [showPreview, setShowPreview] = useState(false);
   
-  const { properties, updateProperty } = usePropertyStore();
+  // Access property store
+  const { 
+    properties, 
+    updateProperty, 
+    addProperty, 
+    removeProperty,
+    getProperty
+  } = usePropertyStore();
 
-  // Initialize listings from property store
+  // Set initial active property
   useEffect(() => {
-    const initialListings = properties.map(property => ({
-      id: property.id,
-      type: 'listing' as const,
-      title: property.name,
-      slug: `property-${property.id}`,
-      propertyDetails: {
-        title: property.name,
-        price: property.price,
-        currency: property.currency,
-        address: property.address,
-        location: { 
-          lat: property.location.lat,
-          lng: property.location.lng
-        },
-        beds: property.beds,
-        baths: property.baths,
-        sqft: property.sqft,
-        description: property.description,
-        features: property.features,
-        amenities: {
-          residences: property.features.residences,
-          luxuryWellness: property.features.luxuryWellness,
-          retailDining: property.features.retailDining,
-          security: []
-        },
-        images: property.images
-      },
-      sections: [],
-      published: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }));
-
-    setListings(initialListings);
-    if (initialListings.length > 0) {
-      setActiveListing(initialListings[0].id);
+    if (properties.length > 0 && !activeProperty) {
+      setActiveProperty(properties[0].id);
     }
-  }, [properties]);
+  }, [properties, activeProperty]);
 
-  const currentListing = listings.find(l => l.id === activeListing);
+  // Get current property
+  const currentProperty = activeProperty ? properties.find(p => p.id === activeProperty) : null;
 
-  const updateListingDetails = (details: Partial<PropertyDetails>) => {
-    if (!currentListing) return;
-
-    const updatedListing = {
-      ...currentListing,
-      propertyDetails: {
-        ...currentListing.propertyDetails,
-        ...details
-      },
+  const handlePropertyUpdate = (updatedData: Partial<Property>) => {
+    if (!currentProperty) return;
+    
+    updateProperty(currentProperty.id, {
+      ...updatedData,
       updatedAt: new Date().toISOString()
-    };
-
-    setListings(listings.map(listing =>
-      listing.id === activeListing ? updatedListing : listing
-    ));
-
-    // Update the property store
-    updateProperty(currentListing.id, {
-      name: details.title || currentListing.propertyDetails.title,
-      price: details.price || currentListing.propertyDetails.price,
-      currency: details.currency || currentListing.propertyDetails.currency,
-      address: details.address || currentListing.propertyDetails.address,
-      beds: details.beds || currentListing.propertyDetails.beds,
-      baths: details.baths || currentListing.propertyDetails.baths,
-      sqft: details.sqft || currentListing.propertyDetails.sqft,
-      description: details.description || currentListing.propertyDetails.description,
-      features: details.features || currentListing.propertyDetails.features,
-      images: details.images || currentListing.propertyDetails.images,
-      location: {
-        lat: details.location?.lat || currentListing.propertyDetails.location.lat,
-        lng: details.location?.lng || currentListing.propertyDetails.location.lng,
-        distances: currentListing.propertyDetails.location?.distances || []
-      }
     });
+    
+    toast.success('Property updated successfully');
   };
 
   const toggleAmenity = (category: keyof typeof amenityCategories, amenity: string) => {
-    if (!currentListing) return;
+    if (!currentProperty) return;
 
-    const currentFeatures = currentListing.propertyDetails.features[category];
+    const currentFeatures = currentProperty.features[category];
     const newFeatures = currentFeatures.includes(amenity)
       ? currentFeatures.filter(a => a !== amenity)
       : [...currentFeatures, amenity];
 
-    updateListingDetails({
+    handlePropertyUpdate({
       features: {
-        ...currentListing.propertyDetails.features,
+        ...currentProperty.features,
         [category]: newFeatures
       }
     });
@@ -294,34 +193,60 @@ export function PageManager() {
     }, 3000);
   };
 
-  const createNewListing = () => {
-    const newListing: Page = {
-      id: `listing-${Date.now()}`,
-      type: 'listing',
-      title: 'New Property Listing',
-      slug: `property-${Date.now()}`,
-      propertyDetails: { ...DEFAULT_PROPERTY },
-      sections: [],
+  const createNewProperty = () => {
+    const newId = `property-${Date.now()}`;
+    
+    const newProperty: Property = {
+      id: newId,
+      name: 'New Property',
+      image: '',
+      images: [],
+      price: 0,
+      currency: 'USD',
+      address: '',
+      beds: 0,
+      baths: 0,
+      sqft: 0,
+      description: '',
+      features: {
+        residences: [],
+        luxuryWellness: [],
+        retailDining: []
+      },
+      location: {
+        lat: 25.2048, // Dubai default
+        lng: 55.2708,
+        distances: []
+      },
       published: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
-    setListings([...listings, newListing]);
-    setActiveListing(newListing.id);
+    addProperty(newProperty);
+    setActiveProperty(newId);
     setEditingMode('details');
-    toast.success('New listing created');
+    toast.success('New property created');
   };
 
   const togglePublished = () => {
-    if (!currentListing) return;
+    if (!currentProperty) return;
 
-    setListings(listings.map(listing =>
-      listing.id === activeListing
-        ? { ...listing, published: !listing.published }
-        : listing
-    ));
-    toast.success(`Listing ${currentListing.published ? 'unpublished' : 'published'}`);
+    handlePropertyUpdate({
+      published: !currentProperty.published
+    });
+    
+    toast.success(`Property ${currentProperty.published ? 'unpublished' : 'published'}`);
+  };
+
+  const handleDeleteProperty = () => {
+    if (!currentProperty) return;
+    
+    if (confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
+      removeProperty(currentProperty.id);
+      setActiveProperty(properties.length > 1 ? properties[0].id : null);
+      toast.success('Property deleted successfully');
+    }
   };
 
   return (
@@ -334,13 +259,11 @@ export function PageManager() {
               <h1 className="text-3xl font-light">Property Listings</h1>
             </div>
             <div className="flex items-center gap-4">
-              {currentListing && (
+              {currentProperty && (
                 <>
                   <button
                     onClick={() => setShowPreview(true)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                      showPreview ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'
-                    }`}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors bg-gray-100 text-gray-600 hover:bg-gray-200"
                   >
                     <Eye className="w-4 h-4" />
                     Preview
@@ -348,25 +271,32 @@ export function PageManager() {
                   <button
                     onClick={togglePublished}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                      currentListing.published ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'
+                      currentProperty.published ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'
                     }`}
                   >
-                    {currentListing.published ? 'Published' : 'Draft'}
+                    {currentProperty.published ? 'Published' : 'Draft'}
+                  </button>
+                  <button
+                    onClick={handleDeleteProperty}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors bg-red-100 text-red-600 hover:bg-red-200"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete
                   </button>
                 </>
               )}
               <button
-                onClick={createNewListing}
+                onClick={createNewProperty}
                 className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
               >
                 <Plus className="w-4 h-4" />
-                New Listing
+                New Property
               </button>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex items-center gap-2 mt-6">
+          <div className="flex items-center gap-2 mt-6 overflow-x-auto">
             <button
               onClick={() => setEditingMode('details')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
@@ -383,7 +313,7 @@ export function PageManager() {
               }`}
             >
               <Image className="w-4 h-4" />
-              Slideshow
+              Images
             </button>
             <button
               onClick={() => setEditingMode('location')}
@@ -431,42 +361,63 @@ export function PageManager() {
           <div className="col-span-3">
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="space-y-2">
-                {listings.map((listing) => (
+                {properties.map((property) => (
                   <div
-                    key={listing.id}
+                    key={property.id}
                     className={`group flex items-center justify-between rounded-lg transition-colors ${
-                      activeListing === listing.id ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'
+                      activeProperty === property.id ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
                     <button
-                      onClick={() => setActiveListing(listing.id)}
-                      className="flex items-center gap-2 px-4 py-2 flex-1"
+                      onClick={() => setActiveProperty(property.id)}
+                      className="flex items-center gap-2 px-4 py-2 flex-1 text-left"
                     >
-                      <Building2 className="w-4 h-4" />
-                      <span>{listing.title}</span>
+                      <Building2 className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">{property.name}</span>
                     </button>
+                    <div className={`mr-2 flex-shrink-0 ${property.published ? 'text-green-500' : 'text-gray-400'}`}>
+                      {property.published ? (
+                        <Check className="w-4 h-4" />
+                      ) : (
+                        <X className="w-4 h-4" />
+                      )}
+                    </div>
                   </div>
                 ))}
+                
+                {properties.length === 0 && (
+                  <div className="text-center py-6 text-gray-500">
+                    <Building2 className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                    <p>No properties yet</p>
+                    <button
+                      onClick={createNewProperty}
+                      className="mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm hover:bg-gray-800"
+                    >
+                      Create Your First Property
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           {/* Content Area */}
           <div className="col-span-9">
-            {currentListing && editingMode !== 'hosting' ? (
+            {currentProperty && editingMode !== 'hosting' ? (
               <div className="bg-white rounded-xl shadow-sm p-8">
                 {editingMode === 'details' && (
                   <div className="space-y-8">
                     <div className="grid grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Property Title
+                          Property Name
                         </label>
                         <input
                           type="text"
-                          value={currentListing.propertyDetails.title}
-                          onChange={(e) => updateListingDetails({ title: e.target.value })}
+                          value={currentProperty.name}
+                          onChange={(e) => handlePropertyUpdate({ name: e.target.value })}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                          placeholder="Enter property name"
                         />
                       </div>
                       <div>
@@ -475,9 +426,10 @@ export function PageManager() {
                         </label>
                         <input
                           type="text"
-                          value={currentListing.propertyDetails.address}
-                          onChange={(e) => updateListingDetails({ address: e.target.value })}
+                          value={currentProperty.address}
+                          onChange={(e) => handlePropertyUpdate({ address: e.target.value })}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                          placeholder="Enter property address"
                         />
                       </div>
                     </div>
@@ -489,10 +441,28 @@ export function PageManager() {
                         </label>
                         <input
                           type="number"
-                          value={currentListing.propertyDetails.price}
-                          onChange={(e) => updateListingDetails({ price: Number(e.target.value) })}
+                          value={currentProperty.price}
+                          onChange={(e) => handlePropertyUpdate({ price: Number(e.target.value) })}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                          placeholder="Enter price"
                         />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Currency
+                        </label>
+                        <select
+                          value={currentProperty.currency}
+                          onChange={(e) => handlePropertyUpdate({ currency: e.target.value })}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                        >
+                          <option value="USD">USD ($)</option>
+                          <option value="EUR">EUR (€)</option>
+                          <option value="GBP">GBP (£)</option>
+                          <option value="AED">AED (د.إ)</option>
+                          <option value="BTC">BTC (₿)</option>
+                          <option value="USDT">USDT (₮)</option>
+                        </select>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -500,9 +470,10 @@ export function PageManager() {
                         </label>
                         <input
                           type="number"
-                          value={currentListing.propertyDetails.beds}
-                          onChange={(e) => updateListingDetails({ beds: Number(e.target.value) })}
+                          value={currentProperty.beds}
+                          onChange={(e) => handlePropertyUpdate({ beds: Number(e.target.value) })}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                          placeholder="Enter beds"
                         />
                       </div>
                       <div>
@@ -511,22 +482,25 @@ export function PageManager() {
                         </label>
                         <input
                           type="number"
-                          value={currentListing.propertyDetails.baths}
-                          onChange={(e) => updateListingDetails({ baths: Number(e.target.value) })}
+                          value={currentProperty.baths}
+                          onChange={(e) => handlePropertyUpdate({ baths: Number(e.target.value) })}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                          placeholder="Enter baths"
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Sq Ft
-                        </label>
-                        <input
-                          type="number"
-                          value={currentListing.propertyDetails.sqft}
-                          onChange={(e) => updateListingDetails({ sqft: Number(e.target.value) })}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                        />
-                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Square Footage
+                      </label>
+                      <input
+                        type="number"
+                        value={currentProperty.sqft}
+                        onChange={(e) => handlePropertyUpdate({ sqft: Number(e.target.value) })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                        placeholder="Enter square footage"
+                      />
                     </div>
 
                     <div>
@@ -534,11 +508,17 @@ export function PageManager() {
                         Description
                       </label>
                       <textarea
-                        value={currentListing.propertyDetails.description}
-                        onChange={(e) => updateListingDetails({ description: e.target.value })}
+                        value={currentProperty.description}
+                        onChange={(e) => handlePropertyUpdate({ description: e.target.value })}
                         rows={6}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                        placeholder="Enter property description"
                       />
+                    </div>
+                    
+                    <div className="border-t pt-4 text-gray-500 text-sm">
+                      <div>Last updated: {new Date(currentProperty.updatedAt).toLocaleString()}</div>
+                      <div>Created: {new Date(currentProperty.createdAt).toLocaleString()}</div>
                     </div>
                   </div>
                 )}
@@ -547,14 +527,23 @@ export function PageManager() {
                   <div className="space-y-8">
                     <div>
                       <h3 className="text-lg font-semibold mb-4">Property Images</h3>
-                      <p className="text-gray-600 mb-6">Drag and drop to reorder images. Click the grip handle to start dragging.</p>
+                      <p className="text-gray-600 mb-6">Drag and drop to reorder images. The first image will be used as the main image on listings.</p>
                       <SortableImageGrid
-                        images={currentListing.propertyDetails.images}
-                        onImagesChange={(images) => updateListingDetails({ images })}
+                        images={currentProperty.images}
+                        onImagesChange={(images) => {
+                          handlePropertyUpdate({ 
+                            images,
+                            // Set first image as main image
+                            image: images.length > 0 ? images[0] : ''
+                          });
+                        }}
                         onImageUpload={(files) => {
                           const newImages = Array.from(files).map(file => URL.createObjectURL(file));
-                          updateListingDetails({
-                            images: [...currentListing.propertyDetails.images, ...newImages]
+                          const updatedImages = [...currentProperty.images, ...newImages];
+                          handlePropertyUpdate({
+                            images: updatedImages,
+                            // Set first image as main image if no main image exists
+                            image: currentProperty.image || (updatedImages.length > 0 ? updatedImages[0] : '')
                           });
                           toast.success('Images uploaded successfully');
                         }}
@@ -574,10 +563,10 @@ export function PageManager() {
                           </label>
                           <input
                             type="number"
-                            value={currentListing.propertyDetails.location.lat}
-                            onChange={(e) => updateListingDetails({
+                            value={currentProperty.location.lat}
+                            onChange={(e) => handlePropertyUpdate({
                               location: {
-                                ...currentListing.propertyDetails.location,
+                                ...currentProperty.location,
                                 lat: Number(e.target.value)
                               }
                             })}
@@ -591,10 +580,10 @@ export function PageManager() {
                           </label>
                           <input
                             type="number"
-                            value={currentListing.propertyDetails.location.lng}
-                            onChange={(e) => updateListingDetails({
+                            value={currentProperty.location.lng}
+                            onChange={(e) => handlePropertyUpdate({
                               location: {
-                                ...currentListing.propertyDetails.location,
+                                ...currentProperty.location,
                                 lng: Number(e.target.value)
                               }
                             })}
@@ -604,9 +593,114 @@ export function PageManager() {
                         </div>
                       </div>
                       <GoogleMap
-                        center={currentListing.propertyDetails.location}
-                        onCenterChange={(location) => updateListingDetails({ location })}
+                        center={currentProperty.location}
+                        onCenterChange={(location) => handlePropertyUpdate({ 
+                          location: {
+                            ...currentProperty.location,
+                            lat: location.lat,
+                            lng: location.lng
+                          }
+                        })}
                       />
+                      
+                      <div className="mt-8">
+                        <h3 className="text-lg font-semibold mb-4">Nearby Places</h3>
+                        <p className="text-gray-600 mb-4">Add nearby places with travel time information.</p>
+                        
+                        <div className="space-y-4">
+                          {currentProperty.location.distances.map((distance, index) => (
+                            <div key={index} className="flex items-center gap-4">
+                              <input
+                                type="text"
+                                value={distance.place}
+                                onChange={(e) => {
+                                  const updatedDistances = [...currentProperty.location.distances];
+                                  updatedDistances[index].place = e.target.value;
+                                  handlePropertyUpdate({
+                                    location: {
+                                      ...currentProperty.location,
+                                      distances: updatedDistances
+                                    }
+                                  });
+                                }}
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+                                placeholder="Place name"
+                              />
+                              <input
+                                type="number"
+                                value={distance.time}
+                                onChange={(e) => {
+                                  const updatedDistances = [...currentProperty.location.distances];
+                                  updatedDistances[index].time = Number(e.target.value);
+                                  handlePropertyUpdate({
+                                    location: {
+                                      ...currentProperty.location,
+                                      distances: updatedDistances
+                                    }
+                                  });
+                                }}
+                                className="w-24 px-4 py-2 border border-gray-300 rounded-lg"
+                                placeholder="Minutes"
+                              />
+                              <select
+                                value={distance.type || 'landmark'}
+                                onChange={(e) => {
+                                  const updatedDistances = [...currentProperty.location.distances];
+                                  updatedDistances[index].type = e.target.value;
+                                  handlePropertyUpdate({
+                                    location: {
+                                      ...currentProperty.location,
+                                      distances: updatedDistances
+                                    }
+                                  });
+                                }}
+                                className="w-40 px-4 py-2 border border-gray-300 rounded-lg"
+                              >
+                                <option value="landmark">Landmark</option>
+                                <option value="restaurant">Restaurant</option>
+                                <option value="store">Store</option>
+                                <option value="school">School</option>
+                                <option value="transit_station">Transit Station</option>
+                                <option value="park">Park</option>
+                                <option value="business">Business</option>
+                              </select>
+                              <button
+                                onClick={() => {
+                                  const updatedDistances = currentProperty.location.distances.filter((_, i) => i !== index);
+                                  handlePropertyUpdate({
+                                    location: {
+                                      ...currentProperty.location,
+                                      distances: updatedDistances
+                                    }
+                                  });
+                                }}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-full"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
+                            </div>
+                          ))}
+                          
+                          <button
+                            onClick={() => {
+                              const updatedDistances = [
+                                ...currentProperty.location.distances,
+                                { place: '', time: 5, type: 'landmark' }
+                              ];
+                              handlePropertyUpdate({
+                                location: {
+                                  ...currentProperty.location,
+                                  distances: updatedDistances
+                                }
+                              });
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Add Place
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -615,7 +709,7 @@ export function PageManager() {
                   <div className="space-y-8">
                     <div>
                       <h3 className="text-lg font-semibold mb-4">Property Amenities</h3>
-                      <div className="flex gap-2 mb-6">
+                      <div className="flex gap-2 mb-6 flex-wrap">
                         {Object.entries(amenityCategories).map(([key, category]) => (
                           <button
                             key={key}
@@ -633,7 +727,7 @@ export function PageManager() {
 
                       <div className="grid grid-cols-2 gap-4">
                         {amenityCategories[selectedCategory].options.map((amenity) => {
-                          const isSelected = currentListing.propertyDetails.features[selectedCategory].includes(amenity);
+                          const isSelected = currentProperty.features[selectedCategory].includes(amenity);
                           return (
                             <button
                               key={amenity}
@@ -658,10 +752,10 @@ export function PageManager() {
                   </div>
                 )}
               </div>
-            ) : !currentListing && editingMode !== 'hosting' ? (
+            ) : !currentProperty && editingMode !== 'hosting' ? (
               <div className="bg-white rounded-xl shadow-sm p-8 text-center">
                 <Building2 className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-600">Select a listing to edit</p>
+                <p className="text-gray-600">Select a property to edit or create a new one</p>
               </div>
             ) : null}
           </div>
@@ -669,9 +763,9 @@ export function PageManager() {
       </div>
 
       {/* Preview Modal */}
-      {showPreview && currentListing && (
+      {showPreview && currentProperty && (
         <PropertyPreview
-          property={currentListing.propertyDetails}
+          property={currentProperty}
           onClose={() => setShowPreview(false)}
         />
       )}

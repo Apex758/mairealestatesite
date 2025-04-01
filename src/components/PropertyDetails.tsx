@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PropertyCard } from './PropertyCard';
 import { GoogleMap } from './GoogleMap';
-import { Store, Utensils, Building2, School, Train, Sparkle as Park } from 'lucide-react';
+import { Store, Utensils, Building2, School, Train, Sparkle as Park, X, MapPin } from 'lucide-react';
 
 interface PropertyDetailsProps {
   details: {
@@ -45,13 +45,25 @@ interface PropertyDetailsProps {
   }>;
 }
 
+// Define place types and their icons
 const placeTypeIcons: Record<string, React.ReactNode> = {
-  store: <Store className="w-4 h-4" />,
+  cafe: <Utensils className="w-4 h-4" />,
   restaurant: <Utensils className="w-4 h-4" />,
+  supermarket: <Store className="w-4 h-4" />,
   school: <School className="w-4 h-4" />,
   transit_station: <Train className="w-4 h-4" />,
   park: <Park className="w-4 h-4" />,
   default: <Building2 className="w-4 h-4" />
+};
+
+// Define place type labels
+const placeTypeLabels: Record<string, string> = {
+  cafe: 'Cafes',
+  restaurant: 'Restaurants',
+  supermarket: 'Supermarkets',
+  school: 'Schools',
+  transit_station: 'Transit',
+  park: 'Parks',
 };
 
 export function PropertyDetails({
@@ -62,12 +74,83 @@ export function PropertyDetails({
   similarProperties
 }: PropertyDetailsProps) {
   const [selectedPlaceType, setSelectedPlaceType] = useState<string | null>(null);
+  const [selectedPredefinedPlace, setSelectedPredefinedPlace] = useState<number | null>(null);
+  const [selectedNearbyPlace, setSelectedNearbyPlace] = useState<any | null>(null);
+  const [placeCache, setPlaceCache] = useState<Record<string, any[]>>({});
+  const [nearbyPlaces, setNearbyPlaces] = useState<any[]>([]);
+  const [mapCenter, setMapCenter] = useState({
+    lat: location?.lat || 0,
+    lng: location?.lng || 0
+  });
+  
+  // Set default travel mode to WALKING
+  const travelMode = 'WALKING';
+  
+  // Set a flag for read-only mode (this could be passed as a prop)
+  const readOnly = false;
 
   const distances = location?.distances || [];
   const placeTypes = Array.from(new Set(distances.map(d => d.type || 'default')));
   const filteredPlaces = selectedPlaceType 
     ? distances.filter(d => (d.type || 'default') === selectedPlaceType)
     : distances;
+
+  // When selectedPlaceType changes, we need to trigger a refresh
+  useEffect(() => {
+    // Force a re-render of the GoogleMap component when place type changes
+    console.log(`PropertyDetails: Place type changed to ${selectedPlaceType}`);
+    
+    // Clear previous results when type changes
+    setNearbyPlaces([]);
+    setSelectedNearbyPlace(null);
+  }, [selectedPlaceType]);
+  
+  // Preserve place list once it's fetched until a new type is selected
+  useEffect(() => {
+    // This ensures that once places are loaded, they won't reorder
+    // Only a new place type selection will clear the list
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // This is just to detect page refreshes
+      console.log("Page will refresh");
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
+  const handlePlaceTypeChange = (type: string | null) => {
+    console.log(`Setting place type to: ${type}`);
+    
+    // Check if we have cached places for this type
+    if (type && placeCache[type]) {
+      console.log(`Using cached places for ${type}`);
+      setNearbyPlaces(placeCache[type]);
+      setSelectedPlaceType(type);
+      return;
+    }
+    
+    setSelectedPlaceType(type);
+    // Reset selected places when type changes
+    setSelectedPredefinedPlace(null);
+    setSelectedNearbyPlace(null);
+  };
+
+  // Handler for when nearby places are found by the GoogleMap component
+  const handleNearbyPlacesFound = (places: any[]) => {
+    console.log(`PropertyDetails received ${places.length} nearby places`);
+    
+    // Cache the places by their type
+    if (selectedPlaceType) {
+      setPlaceCache(prev => ({
+        ...prev,
+        [selectedPlaceType]: places
+      }));
+    }
+    
+    setNearbyPlaces(places);
+  };
 
   return (
     <div>
@@ -78,7 +161,7 @@ export function PropertyDetails({
           <h2 className="text-2xl font-light">Property Details</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-gray-50 p-6 rounded-lg">
+          <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
             <h3 className="text-lg font-semibold mb-4">Details</h3>
             <div className="space-y-3">
               <div>
@@ -101,7 +184,7 @@ export function PropertyDetails({
               </div>
             </div>
           </div>
-          <div className="bg-gray-50 p-6 rounded-lg">
+          <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
             <h3 className="text-lg font-semibold mb-4">Payment Plan</h3>
             <div className="space-y-3">
               <div>
@@ -174,72 +257,103 @@ export function PropertyDetails({
           <div className="flex-1 border-b border-gray-200" />
           <h2 className="text-2xl font-light">Location</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Map */}
-          <div>
-            <GoogleMap
-              center={{ 
-                lat: location.lat || 25.2048, 
-                lng: location.lng || 55.2708 
-              }}
-              readOnly
-              places={distances}
-              selectedType={selectedPlaceType}
-            />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          {/* Map on the left (3 columns) */}
+          <div className="lg:col-span-3">
+            <div className="relative rounded-lg overflow-hidden shadow-md">
+              <GoogleMap 
+                center={mapCenter}
+                onCenterChange={setMapCenter}
+                readOnly={readOnly}
+                places={distances}
+                selectedType={selectedPlaceType}
+                travelMode={travelMode}
+                selectedNearbyPlace={selectedNearbyPlace}
+                selectedPredefinedPlace={selectedPredefinedPlace}
+                onSelectedPredefinedPlaceChange={setSelectedPredefinedPlace}
+                onSelectedNearbyPlaceChange={setSelectedNearbyPlace}
+                onNearbyPlacesFound={handleNearbyPlacesFound}
+                markerColor="red" // Changed marker color to red
+              />
+            </div>
           </div>
-          {/* Nearby Places */}
-          <div>
-            <h3 className="text-xl font-semibold mb-4">Nearby Places</h3>
-            
-            {/* Place Type Filters */}
-            {placeTypes.length > 0 && (
-              <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+          
+          {/* Info and buttons on the right (2 columns) */}
+          <div className="lg:col-span-2">
+            {/* Place type filters */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {/* "All Places" button removed */}
+              
+              {Object.entries(placeTypeLabels).map(([type, label]) => (
                 <button
-                  onClick={() => setSelectedPlaceType(null)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full whitespace-nowrap transition-colors ${
-                    !selectedPlaceType 
-                      ? 'bg-gray-900 text-white' 
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  key={type}
+                  onClick={() => handlePlaceTypeChange(type)}
+                  className={`flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg transition-all ${
+                    selectedPlaceType === type 
+                      ? 'bg-gray-900 text-white shadow-sm' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  All Places
+                  {placeTypeIcons[type] || placeTypeIcons.default}
+                  <span>{label}</span>
                 </button>
-                {placeTypes.map((type) => (
-                  <button
-                    key={type}
-                    onClick={() => setSelectedPlaceType(type)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full whitespace-nowrap transition-colors ${
-                      selectedPlaceType === type 
-                        ? 'bg-gray-900 text-white' 
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {placeTypeIcons[type] || placeTypeIcons.default}
-                    {type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ')}
-                  </button>
-                ))}
+              ))}
+            </div>
+
+            {/* Display nearby places list */}
+            {selectedPlaceType && (
+              <div className="mt-6">
+                <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                  {placeTypeIcons[selectedPlaceType] || placeTypeIcons.default}
+                  <span>Nearby {placeTypeLabels[selectedPlaceType]}</span> 
+                </h3>
+                
+                {/* Description of the place type */}
+                <div className="mb-4 p-4 bg-blue-50 rounded-lg shadow-sm">
+                  <p className="text-sm text-gray-600">
+                    {selectedPlaceType === 'cafe' && "Enjoy a relaxing cup of coffee or tea at these nearby cafes within easy reach of the property."}
+                    {selectedPlaceType === 'restaurant' && "Discover nearby dining options for everything from quick meals to fine dining experiences."}
+                    {selectedPlaceType === 'supermarket' && "Conveniently shop for groceries and essentials at these nearby supermarkets."}
+                    {selectedPlaceType === 'school' && "Educational institutions including schools, colleges and universities in the vicinity."}
+                    {selectedPlaceType === 'transit_station' && "Easily access public transportation options from these nearby transit stations."}
+                    {!['cafe', 'restaurant', 'supermarket', 'school', 'transit_station'].includes(selectedPlaceType) && 
+                      "Points of interest located near the property."}
+                  </p>
+                </div>
+                
+                {nearbyPlaces.length > 0 ? (
+                  <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+                    {/* Use stableIndex as key to prevent reordering */}
+                    {nearbyPlaces.map((place) => (
+                      <div 
+                        key={`place-${place.stableIndex || place.id}`}
+                        className="p-4 bg-white border border-gray-100 rounded-lg hover:bg-gray-50 cursor-pointer transition-all shadow-sm"
+                        onClick={() => setSelectedNearbyPlace(place)}
+                      >
+                        <div className="font-medium text-gray-900">{place.name}</div>
+                        <div className="text-sm text-gray-600 mt-1">{place.vicinity}</div>
+                        <div className="text-sm text-gray-500 mt-2 flex items-center">
+                          <MapPin className="w-3.5 h-3.5 mr-1" />
+                          {place.distance} • {place.duration}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-5 bg-white border border-gray-100 rounded-lg text-gray-500 text-center shadow-sm">
+                    <MapPin className="w-6 h-6 mx-auto mb-2 text-gray-400" />
+                    <p>No {placeTypeLabels[selectedPlaceType]} found nearby.</p>
+                    <button 
+                      onClick={() => setSelectedPlaceType(null)}
+                      className="mt-3 text-blue-600 text-sm hover:underline"
+                    >
+                      Try another category
+                    </button>
+                  </div>
+                )}
               </div>
             )}
-
-            {/* Places List */}
-            <div className="space-y-3">
-              {filteredPlaces.length > 0 ? (
-                filteredPlaces.map((item, index) => (
-                  <div 
-                    key={index} 
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                  >
-                    <div className="flex items-center gap-3">
-                      {placeTypeIcons[item.type || 'default']}
-                      <span className="text-gray-600">{item.place}</span>
-                    </div>
-                    <span className="font-medium">{item.time} min</span>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500">No nearby places found.</p>
-              )}
-            </div>
           </div>
         </div>
       </div>
