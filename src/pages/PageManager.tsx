@@ -113,6 +113,8 @@ const DEFAULT_HOSTING: HostingConfig = {
   }
 };
 
+
+
 export function PageManager() {
   const [activeProperty, setActiveProperty] = useState<string | null>(null);
   const [editingMode, setEditingMode] = useState<'details' | 'slideshow' | 'location' | 'amenities' | 'hosting' | 'content'>('details');

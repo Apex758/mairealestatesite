@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface StackedImageSliderProps {
   images: string[];
@@ -9,6 +9,7 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
   const isAnimating = useRef(false);
   const intervalRef = useRef<number>();
   const targetImageSrc = useRef<string | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   useEffect(() => {
     const styleEl = document.createElement('style');
@@ -20,14 +21,14 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
         margin: 0 auto;
         overflow: hidden;
         display: flex;
-        justify-content: flex-end;
+        justify-content: flex-start;
         align-items: center;
       }
 
       .stacked-slider img {
         position: absolute;
         height: 726px;
-        right: 0;
+        left: 0;
         width: 1089px;
         border-radius: 4px;
         box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.15);
@@ -42,21 +43,21 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
       }
 
       .stacked-slider img:nth-child(1) {
-        transform: translateX(-75px);
+        transform: translateX(75px);
         opacity: 0;
         z-index: 1;
         filter: blur(1px);
       }
 
       .stacked-slider img:nth-child(2) {
-        transform: translateX(-55px);
+        transform: translateX(55px);
         opacity: 0.33;
         z-index: 2;
         filter: blur(0.5px);
       }
 
       .stacked-slider img:nth-child(3) {
-        transform: translateX(-35px);
+        transform: translateX(35px);
         opacity: 0.66;
         z-index: 3;
         filter: blur(0);
@@ -76,7 +77,7 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
           filter: blur(0);
         }
         100% {
-          transform: translateX(50px) scale(0.95);
+          transform: translateX(-50px) scale(0.95);
           opacity: 0;
           filter: blur(4px);
         }
@@ -84,12 +85,12 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
 
       @keyframes fadeIn {
         0% {
-          transform: translateX(100px);
+          transform: translateX(-100px);
           opacity: 0;
           filter: blur(4px);
         }
         100% {
-          transform: translateX(-75px);
+          transform: translateX(75px);
           opacity: 0;
           filter: blur(1px);
         }
@@ -105,6 +106,40 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
 
       .fast-fade-in {
         animation: fadeIn 200ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+      }
+
+      .thumbnail-container {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .thumbnail {
+        width: 80px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 4px;
+        cursor: pointer;
+        opacity: 0.6;
+        transform: scale(0.9);
+        transition: all 0.3s ease;
+        margin: 0 4px;
+      }
+
+      .thumbnail.active {
+        opacity: 1;
+        transform: scale(1.1);
+        border: 2px solid #3b82f6;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      }
+
+      .thumbnail-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 16px;
       }
     `;
     document.head.appendChild(styleEl);
@@ -143,19 +178,19 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
         img.className = '';
 
         if (index === 0) {
-          img.style.transform = 'translateX(-75px)';
+          img.style.transform = 'translateX(75px)';
           img.style.opacity = '0';
           img.style.zIndex = '1';
           img.style.filter = 'blur(1px)';
           img.style.cursor = 'pointer';
         } else if (index === 1) {
-          img.style.transform = 'translateX(-55px)';
+          img.style.transform = 'translateX(55px)';
           img.style.opacity = '0.33';
           img.style.zIndex = '2';
           img.style.filter = 'blur(0.5px)';
           img.style.cursor = 'pointer';
         } else if (index === 2) {
-          img.style.transform = 'translateX(-35px)';
+          img.style.transform = 'translateX(35px)';
           img.style.opacity = '0.66';
           img.style.zIndex = '3';
           img.style.filter = 'blur(0)';
@@ -167,41 +202,10 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
           img.style.filter = 'blur(0)';
           img.style.cursor = 'pointer';
         }
-
-        img.onclick = () => {
-          const clickedSrc = img.getAttribute('src');
-          if (!clickedSrc) return;
-
-          const currentImages = slider.querySelectorAll('img');
-          let clickedIndex = -1;
-
-          for (let i = 0; i < currentImages.length; i++) {
-            if (currentImages[i] === img) {
-              clickedIndex = i;
-              break;
-            }
-          }
-
-          if (clickedIndex === 3) return;
-
-          targetImageSrc.current = clickedSrc;
-          clearInterval(intervalRef.current);
-          moveStack(true);
-          
-          intervalRef.current = window.setInterval(() => {
-            const currentImages = slider.querySelectorAll('img');
-            if (currentImages[3].getAttribute('src') === targetImageSrc.current) {
-              clearInterval(intervalRef.current);
-              intervalRef.current = window.setInterval(() => moveStack(false), NORMAL_INTERVAL);
-            } else {
-              moveStack(true);
-            }
-          }, FAST_INTERVAL);
-        };
       });
     }
 
-    function moveStack(isFast: boolean) {
+    function moveStack(isFast: boolean, targetIndex?: number) {
       if (isAnimating.current || currentImages.length < 4) return;
       isAnimating.current = true;
 
@@ -235,7 +239,17 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
           img.classList.remove('evaporate');
         });
 
-        slider.insertBefore(currentImages[3], slider.firstChild);
+        // If a specific target index is provided
+        if (targetIndex !== undefined) {
+          // Rotate images until the target image is on top
+          while (currentImages[3].getAttribute('src') !== images[targetIndex]) {
+            slider.insertBefore(currentImages[3], slider.firstChild);
+            currentImages = Array.from(slider.querySelectorAll('img'));
+          }
+        } else {
+          slider.insertBefore(currentImages[3], slider.firstChild);
+        }
+
         resetPositions();
 
         const newImages = slider.querySelectorAll('img');
@@ -245,6 +259,11 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
           newImages[0].className = '';
           newImages[0].style.animation = '';
           isAnimating.current = false;
+
+          // Update active image index
+          const topImageSrc = newImages[3].getAttribute('src');
+          const index = images.findIndex(img => img === topImageSrc);
+          setActiveImageIndex(index);
 
           if (isFast) {
             const currentTopImg = slider.querySelectorAll('img')[3];
@@ -267,6 +286,68 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
     };
   }, [images]);
 
+  // Function to handle manual image selection
+  const handleThumbnailClick = (index: number) => {
+    const slider = sliderRef.current;
+    if (!slider) return;
+
+    // Pause auto-rotation
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    // Get current images and ensure the selected image is at the top
+    let currentImages = Array.from(slider.querySelectorAll('img'));
+    
+    // Keep moving images until the desired image is at the top
+    while (currentImages[3].getAttribute('src') !== images[index]) {
+      slider.appendChild(currentImages[0]);
+      currentImages = Array.from(slider.querySelectorAll('img'));
+    }
+
+    // Reset positions and update active state
+    const resetFunc = () => {
+      let currImages = Array.from(slider.querySelectorAll('img'));
+      currImages.forEach((img, idx) => {
+        if (idx === 0) {
+          img.style.transform = 'translateX(75px)';
+          img.style.opacity = '0';
+          img.style.zIndex = '1';
+          img.style.filter = 'blur(1px)';
+        } else if (idx === 1) {
+          img.style.transform = 'translateX(55px)';
+          img.style.opacity = '0.33';
+          img.style.zIndex = '2';
+          img.style.filter = 'blur(0.5px)';
+        } else if (idx === 2) {
+          img.style.transform = 'translateX(35px)';
+          img.style.opacity = '0.66';
+          img.style.zIndex = '3';
+          img.style.filter = 'blur(0)';
+        } else if (idx === 3) {
+          img.style.transform = 'translateX(0)';
+          img.style.opacity = '1';
+          img.style.zIndex = '4';
+          img.style.filter = 'blur(0)';
+        }
+      });
+
+      // Update active image index
+      const topImageSrc = currImages[3].getAttribute('src');
+      const newIndex = images.findIndex(img => img === topImageSrc);
+      setActiveImageIndex(newIndex);
+    };
+
+    resetFunc();
+
+    // Restart auto-rotation after a delay
+    setTimeout(() => {
+      intervalRef.current = window.setInterval(() => {
+        moveStack(false);
+      }, 4000);
+    }, 5000);
+  };
+
   // If no images, show placeholder
   if (!images.length) {
     return (
@@ -277,8 +358,23 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
   }
 
   return (
-    <div className="stacked-slider" ref={sliderRef}>
-      {/* Initial images will be populated by useEffect */}
+    <div>
+      <div className="stacked-slider" ref={sliderRef}>
+        {/* Initial images will be populated by useEffect */}
+      </div>
+      <div className="thumbnail-container">
+        {images.map((img, index) => (
+          <img
+            key={index}
+            src={img}
+            alt={`Thumbnail ${index + 1}`}
+            className={`thumbnail ${
+              index === activeImageIndex ? 'active' : ''
+            }`}
+            onClick={() => handleThumbnailClick(index)}
+          />
+        ))}
+      </div>
     </div>
   );
 }

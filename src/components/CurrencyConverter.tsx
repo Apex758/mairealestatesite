@@ -6,7 +6,7 @@ interface CurrencyConverterProps {
   baseCurrency?: string;
 }
 
-const currencies = ['AED', 'USD', 'EUR', 'GBP', 'CNY', 'JPY', 'BTC', 'USDT'];
+const currencies = ['AED', 'USD', 'EUR', 'GBP', 'RON', 'NGN', 'BTC', 'USDT'];
 
 export function CurrencyConverter({ amount, baseCurrency = 'AED' }: CurrencyConverterProps) {
   const [selectedCurrency, setSelectedCurrency] = useState(baseCurrency);
@@ -14,16 +14,18 @@ export function CurrencyConverter({ amount, baseCurrency = 'AED' }: CurrencyConv
   const [rates, setRates] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    fetchRates(baseCurrency);
+    fetchRates(baseCurrency.toLowerCase());
   }, [baseCurrency]);
 
   const fetchRates = async (base: string) => {
     try {
-      const response = await fetch(`https://v6.exchangerate-api.com/v6/21f591027f3ed21fdd350c61/latest/${base}`);
+      // Using the new free API structure you provided
+      const response = await fetch(`https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${base}.json`);
       const data = await response.json();
-      if (data.result === 'success') {
-        setRates(data.conversion_rates);
-        updateConvertedAmount(selectedCurrency, data.conversion_rates);
+      
+      if (data && data[base]) {
+        setRates(data[base]);
+        updateConvertedAmount(selectedCurrency.toLowerCase(), data[base]);
       }
     } catch (error) {
       console.error('Error fetching rates:', error);
@@ -31,8 +33,13 @@ export function CurrencyConverter({ amount, baseCurrency = 'AED' }: CurrencyConv
   };
 
   const updateConvertedAmount = (currency: string, currentRates: Record<string, number>) => {
-    const rate = currentRates[currency] || 1;
+    const rate = currentRates[currency.toLowerCase()] || 1;
     setConvertedAmount(amount * rate);
+  };
+
+  const handleCurrencyChange = (currency: string) => {
+    setSelectedCurrency(currency);
+    updateConvertedAmount(currency.toLowerCase(), rates);
   };
 
   const formatAmount = (value: number, currency: string) => {
@@ -53,10 +60,10 @@ export function CurrencyConverter({ amount, baseCurrency = 'AED' }: CurrencyConv
         return '€';
       case 'GBP':
         return '£';
-      case 'CNY':
-        return '¥';
-      case 'JPY':
-        return '¥';
+      case 'NGN':
+        return '₦';
+      case 'RON':
+        return 'lei';
       case 'AED':
         return 'د.إ';
       case 'BTC':
@@ -79,10 +86,7 @@ export function CurrencyConverter({ amount, baseCurrency = 'AED' }: CurrencyConv
           {currencies.map((currency) => (
             <button
               key={currency}
-              onClick={() => {
-                setSelectedCurrency(currency);
-                updateConvertedAmount(currency, rates);
-              }}
+              onClick={() => handleCurrencyChange(currency)}
               className={`px-2 py-0.5 text-xs rounded-full transition-all flex items-center gap-0.5 ${
                 currency === selectedCurrency
                   ? 'bg-white shadow text-gray-900'
