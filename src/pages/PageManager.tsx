@@ -96,13 +96,13 @@ interface HostingConfig {
 }
 
 const DEFAULT_HOSTING: HostingConfig = {
-  provider: 'netlify',
-  siteId: '',
-  teamId: '',
-  apiKey: '',
-  buildCommand: 'npm run build',
-  outputDir: 'dist',
-  deployedUrl: '',
+  provider: 'vercel',
+  projectId: 'mai-real-estate', // Project name from screenshot
+  teamId: 'apex758s-projects', // Team name from screenshot
+  token: '', 
+  buildCommand: 'vite build', // Exact build command from screenshot
+  outputDir: 'dist', // Output directory from screenshot
+  deployedUrl: '', 
   lastDeployed: null,
   status: 'ready',
   apiKeys: {

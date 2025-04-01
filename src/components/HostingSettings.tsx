@@ -3,9 +3,9 @@ import { Settings, Cloud, Key, RefreshCw } from 'lucide-react';
 
 interface HostingConfig {
   provider: string;
-  siteId: string;
+  projectId: string;
   teamId: string;
-  apiKey: string;
+  token: string;
   buildCommand: string;
   outputDir: string;
   deployedUrl: string;
@@ -53,23 +53,23 @@ export function HostingSettings({ config, onUpdate, onDeploy }: HostingSettingsP
               onChange={(e) => onUpdate({ provider: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             >
-              <option value="netlify">Netlify</option>
+              <option value="vercel">Vercel</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Site ID
+              Project ID
             </label>
             <input
               type="text"
-              value={config.siteId}
-              onChange={(e) => onUpdate({ siteId: e.target.value })}
-              placeholder="your-site-123"
+              value={config.projectId}
+              onChange={(e) => onUpdate({ projectId: e.target.value })}
+              placeholder="your-project-id"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             />
             <p className="mt-1 text-sm text-gray-500">
-              Found in your site settings under "Site information"
+              Found in your Vercel project settings
             </p>
           </div>
 
@@ -85,23 +85,23 @@ export function HostingSettings({ config, onUpdate, onDeploy }: HostingSettingsP
               className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             />
             <p className="mt-1 text-sm text-gray-500">
-              Found in your team settings under "Team information"
+              Found in your Vercel team settings (optional)
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              API Key
+              Vercel Token
             </label>
             <input
               type="password"
-              value={config.apiKey}
-              onChange={(e) => onUpdate({ apiKey: e.target.value })}
-              placeholder="netlify_pat_xxxxxx"
+              value={config.token}
+              onChange={(e) => onUpdate({ token: e.target.value })}
+              placeholder="vercel_pat_xxxxxx"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg"
             />
             <p className="mt-1 text-sm text-gray-500">
-              Create a personal access token in your user settings
+              Create a personal access token in Vercel settings
             </p>
           </div>
 
