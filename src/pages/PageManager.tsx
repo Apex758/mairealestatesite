@@ -202,7 +202,7 @@ export function PageManager() {
       image: '',
       images: [],
       price: 0,
-      currency: 'USD',
+      currency: 'AED',
       address: '',
       beds: 0,
       baths: 0,
