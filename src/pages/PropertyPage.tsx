@@ -1,6 +1,3 @@
-// Updated Property Page using PropertyStore
-// File: src/pages/PropertyPage.tsx
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronUp, ChevronDown } from 'lucide-react';
@@ -28,6 +25,11 @@ export function PropertyPage({ previewData }: PropertyPageProps) {
   const [isTranslating, setIsTranslating] = useState(false);
   const descriptionRef = useRef<HTMLDivElement>(null);
   const slideshowRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to top when page loads
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id, previewData]);
 
   // Use preview data if provided, otherwise find property from store
   const property = previewData || properties.find(p => p.id === id);
@@ -94,46 +96,46 @@ export function PropertyPage({ previewData }: PropertyPageProps) {
 
   return (
     <div className={previewData ? 'pt-16' : ''}>
-      {/* Header Background */}
+      {/* Header Background - Added dark mode support */}
       {!previewData && (
-        <div className="h-24 bg-white fixed top-0 left-0 right-0 z-40 border-b shadow-sm" />
+        <div className="h-24 bg-white dark:bg-gray-900 fixed top-0 left-0 right-0 z-40 border-b shadow-sm dark:border-gray-700" />
       )}
       
       <div className={`relative ${previewData ? '' : 'z-30 pt-24'}`}>
         <div className="max-w-8xl mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
-            {/* Left Column - Property Info */}
+            {/* Left Column - Property Info - Added dark mode text colors */}
             <div className="lg:col-span-4">
               <div className="sticky top-32">
                 <div className="flex items-center justify-between mb-6">
-                  <h1 className="text-4xl font-light">{property.name}</h1>
-                  <div className="text-2xl font-light text-gray-900">
+                  <h1 className="text-4xl font-light text-gray-900 dark:text-white">{property.name}</h1>
+                  <div className="text-2xl font-light text-gray-900 dark:text-white">
                     <CurrencyConverter amount={property.price} baseCurrency={property.currency} />
                   </div>
                 </div>
                 <div className="relative">
                   <div 
                     ref={descriptionRef}
-                    className={`prose prose-gray relative ${
+                    className={`prose prose-gray dark:prose-invert relative ${
                       !isDescriptionExpanded && isDescriptionOverflowing ? 'max-h-[calc(100vh-200px)] overflow-hidden' : ''
                     }`}
                   >
-                    <p className="text-gray-600 leading-relaxed">
+                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                       {isTranslating ? (
-                        <span className="italic text-gray-400">{t('translating')}...</span>
+                        <span className="italic text-gray-400 dark:text-gray-500">{t('translating')}...</span>
                       ) : translatedDescription || property.description}
                     </p>
                   </div>
                   
-                  {/* Only show fade and button if content is overflowing */}
+                  {/* Added dark mode for gradient and button - Note the from-white to from-gray-900 change */}
                   {isDescriptionOverflowing && (
                     <>
                       {!isDescriptionExpanded && (
-                        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white dark:from-gray-900 to-transparent" />
                       )}
                       <button
                         onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                        className="mt-2 flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900"
+                        className="mt-2 flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                       >
                         {isDescriptionExpanded ? (
                           <>{t('showLess')} <ChevronUp className="w-4 h-4" /></>
@@ -149,11 +151,11 @@ export function PropertyPage({ previewData }: PropertyPageProps) {
             
             {/* Right Column - Image Slider */}
             <div className="lg:col-span-8" ref={slideshowRef}>
-              <StackedImageSlider images={property.images} />
+              <StackedImageSlider images={property.slideshowImages || property.images} />
             </div>
           </div>
 
-          {/* Property Details */}
+          {/* Property Details component will handle its own dark mode through props */}
           <PropertyDetails 
             details={{
               bedrooms: property.beds,
@@ -180,6 +182,7 @@ export function PropertyPage({ previewData }: PropertyPageProps) {
               distances: property.location.distances
             }}
             similarProperties={similarProperties}
+            brochureImages={property.brochureImages || []}
           />
         </div>
       </div>

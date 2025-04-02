@@ -1,5 +1,4 @@
-// Updated Property Store with Enhanced Functionality
-// File: src/stores/propertyStore.ts
+// src/stores/propertyStore.ts - Enhanced with Better Image Management
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -23,12 +22,13 @@ export interface PropertyDistance {
 }
 
 export interface Property {
-  imageTags?: Record<string, string[]>;
-slideshowImages?: string[];
   id: string;
   name: string;
-  image: string;
-  images: string[];
+  image: string;                  // Main image (shown in listings)
+  images: string[];               // All property images
+  slideshowImages: string[];      // Images to be shown in slideshow (ordered)
+  brochureImages: string[];       // Images for brochure
+  imageTags: Record<string, string[]>; // Map image URLs to tags
   price: number;
   currency: string;
   address: string;
@@ -50,6 +50,14 @@ interface PropertyStore {
   addProperty: (property: Property) => void;
   removeProperty: (id: string) => void;
   getProperty: (id: string) => Property | undefined;
+  
+  // Image-specific operations
+  addImages: (propertyId: string, newImages: string[]) => void;
+  removeImage: (propertyId: string, imageUrl: string) => void;
+  setMainImage: (propertyId: string, imageUrl: string) => void;
+  updateSlideshowImages: (propertyId: string, slideshowImages: string[]) => void;
+  updateBrochureImages: (propertyId: string, brochureImages: string[]) => void;
+  updateImageTags: (propertyId: string, imageUrl: string, tags: string[]) => void;
 }
 
 const initialProperties: Property[] = [
@@ -96,6 +104,22 @@ const initialProperties: Property[] = [
       "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&q=80",
       "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?auto=format&fit=crop&q=80"
     ],
+    slideshowImages: [
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?auto=format&fit=crop&q=80"
+    ],
+    brochureImages: [
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80"
+    ],
+    imageTags: {
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80": ["exterior", "front"],
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80": ["living room", "interior"],
+      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&q=80": ["kitchen", "interior"],
+      "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?auto=format&fit=crop&q=80": ["bathroom", "interior"]
+    },
     published: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -143,6 +167,19 @@ const initialProperties: Property[] = [
       "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80",
       "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&q=80"
     ],
+    slideshowImages: [
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&q=80"
+    ],
+    brochureImages: [
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80"
+    ],
+    imageTags: {
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80": ["living room", "interior"],
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80": ["exterior", "front"],
+      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&q=80": ["kitchen", "interior"]
+    },
     published: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -190,45 +227,240 @@ const initialProperties: Property[] = [
       "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80",
       "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80"
     ],
+    slideshowImages: [
+      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80"
+    ],
+    brochureImages: [
+      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&q=80"
+    ],
+    imageTags: {
+      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&q=80": ["kitchen", "interior"],
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80": ["exterior", "front"],
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80": ["living room", "interior"]
+    },
     published: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   }
 ];
 
+// Helper function to ensure image fields are properly initialized
+const ensureImageFields = (property: Property): Property => {
+  const updatedProperty = { ...property };
+  
+  // Ensure arrays exist
+  if (!updatedProperty.images) updatedProperty.images = [];
+  if (!updatedProperty.slideshowImages) updatedProperty.slideshowImages = [...updatedProperty.images];
+  if (!updatedProperty.brochureImages) updatedProperty.brochureImages = [];
+  if (!updatedProperty.imageTags) updatedProperty.imageTags = {};
+  
+  // If main image is not set, use the first image (if available)
+  if (!updatedProperty.image && updatedProperty.images.length > 0) {
+    updatedProperty.image = updatedProperty.images[0];
+  }
+  
+  return updatedProperty;
+};
+
 // Create the store with persistence to keep properties between page refreshes
 export const usePropertyStore = create<PropertyStore>()(
   persist(
     (set, get) => ({
-      properties: initialProperties,
-      setProperties: (properties) => set({ properties }),
+      properties: initialProperties.map(ensureImageFields),
+      
+      setProperties: (properties) => set({ 
+        properties: properties.map(ensureImageFields) 
+      }),
+      
       updateProperty: (id, updatedProperty) => {
         set((state) => ({
           properties: state.properties.map((property) =>
             property.id === id 
-              ? { 
+              ? ensureImageFields({ 
                   ...property, 
                   ...updatedProperty,
                   updatedAt: new Date().toISOString() 
-                } 
+                })
               : property
           ),
         }));
       },
+      
       addProperty: (property) =>
         set((state) => ({
-          properties: [...state.properties, {
+          properties: [...state.properties, ensureImageFields({
             ...property,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
-          }],
+          })],
         })),
+        
       removeProperty: (id) =>
         set((state) => ({
           properties: state.properties.filter((property) => property.id !== id),
         })),
+        
       getProperty: (id) => {
         return get().properties.find(property => property.id === id);
+      },
+      
+      // Image-specific operations
+      addImages: (propertyId, newImages) => {
+        set((state) => {
+          const property = state.properties.find(p => p.id === propertyId);
+          if (!property) return state;
+          
+          // Add new images to both images and slideshow
+          const updatedImages = [...property.images, ...newImages];
+          const updatedSlideshowImages = [...(property.slideshowImages || []), ...newImages];
+          
+          // Initialize tags for new images
+          const updatedImageTags = { ...property.imageTags };
+          newImages.forEach(img => {
+            if (!updatedImageTags[img]) {
+              updatedImageTags[img] = [];
+            }
+          });
+          
+          // Update the main image if none exists
+          const updatedMainImage = property.image || (updatedImages.length > 0 ? updatedImages[0] : '');
+          
+          return {
+            properties: state.properties.map(p => 
+              p.id === propertyId 
+                ? { 
+                    ...p, 
+                    images: updatedImages,
+                    slideshowImages: updatedSlideshowImages,
+                    imageTags: updatedImageTags,
+                    image: updatedMainImage,
+                    updatedAt: new Date().toISOString()
+                  }
+                : p
+            )
+          };
+        });
+      },
+      
+      removeImage: (propertyId, imageUrl) => {
+        set((state) => {
+          const property = state.properties.find(p => p.id === propertyId);
+          if (!property) return state;
+          
+          // Remove from all image collections
+          const updatedImages = property.images.filter(img => img !== imageUrl);
+          const updatedSlideshowImages = (property.slideshowImages || []).filter(img => img !== imageUrl);
+          const updatedBrochureImages = (property.brochureImages || []).filter(img => img !== imageUrl);
+          
+          // Remove tags for this image
+          const updatedImageTags = { ...property.imageTags };
+          delete updatedImageTags[imageUrl];
+          
+          // Update main image if it was removed
+          let updatedMainImage = property.image;
+          if (updatedMainImage === imageUrl) {
+            updatedMainImage = updatedImages.length > 0 ? updatedImages[0] : '';
+          }
+          
+          return {
+            properties: state.properties.map(p => 
+              p.id === propertyId 
+                ? { 
+                    ...p, 
+                    images: updatedImages,
+                    slideshowImages: updatedSlideshowImages,
+                    brochureImages: updatedBrochureImages,
+                    imageTags: updatedImageTags,
+                    image: updatedMainImage,
+                    updatedAt: new Date().toISOString()
+                  }
+                : p
+            )
+          };
+        });
+      },
+      
+      setMainImage: (propertyId, imageUrl) => {
+        set((state) => {
+          const property = state.properties.find(p => p.id === propertyId);
+          if (!property || !property.images.includes(imageUrl)) return state;
+          
+          return {
+            properties: state.properties.map(p => 
+              p.id === propertyId 
+                ? { 
+                    ...p, 
+                    image: imageUrl,
+                    updatedAt: new Date().toISOString()
+                  }
+                : p
+            )
+          };
+        });
+      },
+      
+      updateSlideshowImages: (propertyId, slideshowImages) => {
+        set((state) => {
+          const property = state.properties.find(p => p.id === propertyId);
+          if (!property) return state;
+          
+          return {
+            properties: state.properties.map(p => 
+              p.id === propertyId 
+                ? { 
+                    ...p, 
+                    slideshowImages,
+                    updatedAt: new Date().toISOString()
+                  }
+                : p
+            )
+          };
+        });
+      },
+      
+      updateBrochureImages: (propertyId, brochureImages) => {
+        set((state) => {
+          const property = state.properties.find(p => p.id === propertyId);
+          if (!property) return state;
+          
+          return {
+            properties: state.properties.map(p => 
+              p.id === propertyId 
+                ? { 
+                    ...p, 
+                    brochureImages,
+                    updatedAt: new Date().toISOString()
+                  }
+                : p
+            )
+          };
+        });
+      },
+      
+      updateImageTags: (propertyId, imageUrl, tags) => {
+        set((state) => {
+          const property = state.properties.find(p => p.id === propertyId);
+          if (!property) return state;
+          
+          const updatedImageTags = { 
+            ...property.imageTags,
+            [imageUrl]: tags
+          };
+          
+          return {
+            properties: state.properties.map(p => 
+              p.id === propertyId 
+                ? { 
+                    ...p, 
+                    imageTags: updatedImageTags,
+                    updatedAt: new Date().toISOString()
+                  }
+                : p
+            )
+          };
+        });
       }
     }),
     {

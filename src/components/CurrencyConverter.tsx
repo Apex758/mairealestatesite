@@ -88,15 +88,15 @@ export function CurrencyConverter({ amount, baseCurrency = 'AED' }: CurrencyConv
           <span className="flex items-center">{getCurrencySymbol(globalCurrency)}</span>
           <span>{formatAmount(convertedAmount, globalCurrency)}</span>
         </div>
-        <div className="inline-flex flex-wrap justify-center gap-1 bg-gray-100 rounded-full p-1">
+        <div className="inline-flex flex-wrap justify-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-full p-1">
           {currencies.map((currency) => (
             <button
               key={currency}
               onClick={() => handleCurrencyChange(currency)}
               className={`px-2 py-0.5 text-xs rounded-full transition-all flex items-center gap-0.5 ${
                 currency === globalCurrency
-                  ? 'bg-white shadow text-gray-900'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white dark:bg-gray-600 shadow text-gray-900 dark:text-white'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <span className="flex items-center">{getCurrencySymbol(currency)}</span>

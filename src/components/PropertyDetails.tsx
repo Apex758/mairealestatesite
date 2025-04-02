@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog } from '@headlessui/react';
 import { PropertyCard } from './PropertyCard';
 import { GoogleMap } from './GoogleMap';
-import { Store, Utensils, Building2, School, Train, Sparkle as Park, MapPin } from 'lucide-react';
+import { Store, Utensils, Building2, School, Train, Sparkle as Park, MapPin, Plus } from 'lucide-react';
 import { useTranslate } from '../hooks/useTranslate';
 import { TranslationKey } from '../translations';
 import { useGlobal } from '../contexts/GlobalContext';
@@ -17,7 +17,9 @@ function FeatureListItem({ feature, isTranslating, t }: { feature: string; isTra
         <span className="italic text-gray-400">{t('translating')}...</span>
       ) : (
         <>
-          <span className="w-2 h-2 bg-blue-600 rounded-full mr-3" />
+          <span className="text-gray-500 dark:text-gray-400 mr-2">
+            <Plus className="w-3.5 h-3.5" />
+          </span>
           {feature}
         </>
       )}
@@ -66,6 +68,7 @@ interface PropertyDetailsProps {
     image: string;
     formattedPrice?: string;
   }>;
+  brochureImages?: string[];
 }
 
 // Define place types and their icons
@@ -104,7 +107,8 @@ export function PropertyDetails({
   payment,
   features = { residences: [], luxuryWellness: [], retailDining: [] },
   location,
-  similarProperties
+  similarProperties,
+  brochureImages = []
 }: PropertyDetailsProps) {
   const { t } = useTranslate();
   const { language } = useGlobal();
@@ -159,6 +163,7 @@ export function PropertyDetails({
   const [placeCache, setPlaceCache] = useState<Record<string, Place[]>>({});
 const [nearbyPlaces, setNearbyPlaces] = useState<Place[]>([]);
 const [isBrochureOpen, setIsBrochureOpen] = useState(false);
+const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [mapCenter, setMapCenter] = useState({
     lat: location?.lat || 0,
     lng: location?.lng || 0
@@ -235,17 +240,52 @@ const [isBrochureOpen, setIsBrochureOpen] = useState(false);
 {/* Added backdrop blur */}
 <Dialog open={isBrochureOpen} onClose={() => setIsBrochureOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"> 
   {/* Added dark mode background and text */}
-  <Dialog.Panel className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-3xl w-full"> 
+  <Dialog.Panel className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-4xl w-full"> 
     <Dialog.Title className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Brochure Images</Dialog.Title> 
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 overflow-y-auto max-h-96">
-      {features.residences.map((img, index) => (
-        <img key={index} src={img} alt={`Brochure ${index}`} className="rounded-lg shadow-sm object-cover" />
-      ))}
-    </div>
+    
+    {/* No brochure images message */}
+    {(!brochureImages || brochureImages.length === 0) ? (
+      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+        <p>No brochure images available</p>
+      </div>
+    ) : (
+      <>
+        {/* Main large image */}
+        <div className="mb-4">
+          <img 
+            src={brochureImages[activeImageIndex || 0]} 
+            alt={`Brochure main view`} 
+            className="rounded-lg shadow-md object-contain w-full h-[500px] mx-auto"
+          />
+        </div>
+        
+        {/* Thumbnails */}
+        <div className="flex flex-wrap gap-2 justify-center">
+          {brochureImages.map((img, index) => (
+            <button 
+              key={index} 
+              onClick={() => setActiveImageIndex(index)}
+              className={`relative p-1 rounded-md transition-all ${
+                index === activeImageIndex 
+                  ? 'ring-2 ring-blue-500 dark:ring-blue-400' 
+                  : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600'
+              }`}
+            >
+              <img 
+                src={img} 
+                alt={`Thumbnail ${index}`} 
+                className="h-16 w-16 object-cover rounded"
+              />
+            </button>
+          ))}
+        </div>
+      </>
+    )}
+    
     {/* Added dark mode button styles */}
     <button
       onClick={() => setIsBrochureOpen(false)}
-      className="mt-4 px-4 py-2 bg-gray-800 dark:bg-gray-600 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-500" 
+      className="mt-6 px-4 py-2 bg-gray-800 dark:bg-gray-600 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-500" 
     >
       Close
     </button>
@@ -306,7 +346,11 @@ const [isBrochureOpen, setIsBrochureOpen] = useState(false);
     className="flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-700 shadow-xl rounded-lg transition-transform duration-300 [transform:rotateY(-25deg)] hover:[transform:rotateY(0deg)] [transform-style:preserve-3d]" // Changed rotation to -25deg (left), increased padding
   >
     <span className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Brochure</span> {/* Increased font size and margin */}
-    <img src="/brochure-placeholder.png" alt="Brochure" className="w-80 h-60 object-cover shadow-lg" /> {/* Increased image size */}
+    <img 
+      src={brochureImages && brochureImages.length > 0 ? brochureImages[0] : "/brochure-placeholder.png"} 
+      alt="Brochure" 
+      className="w-80 h-60 object-cover shadow-lg" 
+    /> {/* Display first brochure image if available */}
   </button>
 </div>
         </div>
@@ -494,7 +538,7 @@ const [isBrochureOpen, setIsBrochureOpen] = useState(false);
               <PropertyCard
                 key={property.id}
                 id={property.id}
-                image={property.image}
+                slideshowImages={[property.image]} // Convert single image to array for slideshowImages
                 price={property.formattedPrice || `$${new Intl.NumberFormat().format(property.price)}`}
                 address={property.name}
                 beds={property.bedrooms}

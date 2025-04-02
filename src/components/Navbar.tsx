@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { useTranslate } from '../hooks/useTranslate';
 // Removed unused DarkModeToggle import
 
-// Special admin credentials - in a real app, these would be handled securely
+// Admin login credentials (secure in production)
 const ADMIN_EMAIL = 'admin@mairealestate.com';
 const ADMIN_PASSWORD = 'mai2025admin';
 
@@ -18,7 +18,6 @@ interface AuthState {
 export function Navbar() {
   const { t } = useTranslate();
   const [isScrolled, setIsScrolled] = useState(false);
-  // Removed unused isOverDarkBg state
   const [showAuthDropdown, setShowAuthDropdown] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [auth, setAuth] = useState<AuthState>({
@@ -30,22 +29,28 @@ export function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const authButtonRef = useRef<HTMLButtonElement>(null); // Ref for the auth button
+  const authButtonRef = useRef<HTMLButtonElement>(null);
   const [loginData, setLoginData] = useState({
     email: '',
     password: ''
   });
 
+  // Determine navbar scroll behavior for specific pages
+  const isPropertyPage = location.pathname.includes('/property/');
+  const isBitcoinPage = location.pathname === '/bitcoin';
+  const isContactPage = location.pathname === '/contact';
+  const isPageManagerPage = location.pathname === '/page-manager';
+  const alwaysScrolled = isPropertyPage || isBitcoinPage || isContactPage || isPageManagerPage;
+
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
-      setIsScrolled(scrollPosition > 50);
-
-      // Removed isOverDarkBg calculation logic
+      // Maintain scrolled state for specific pages or on scroll
+      setIsScrolled(alwaysScrolled || scrollPosition > 50);
     };
 
     const handleClickOutside = (event: MouseEvent) => {
-      // Close dropdown if click is outside the dropdown itself AND outside the button that opens it
+      // Close dropdown when clicking outside
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node) &&
@@ -53,7 +58,7 @@ export function Navbar() {
         !authButtonRef.current.contains(event.target as Node)
       ) {
         setShowAuthDropdown(false);
-        setShowLoginForm(false); // Also close login form if clicking outside
+        setShowLoginForm(false);
       }
     };
 
@@ -65,9 +70,7 @@ export function Navbar() {
       window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [location]); // Removed isOverDarkBg dependency as we'll use dark: prefix
-
-  // Removed getTextColor and getLinkColor functions
+  }, [location, alwaysScrolled]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,20 +116,19 @@ export function Navbar() {
     <nav className={`fixed w-full z-50 transition-all duration-300 ${
       isScrolled 
         ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700' 
-        : 'bg-transparent border-b border-transparent' // Simplified initial state
+        : 'bg-transparent border-b border-transparent' 
     }`}>
       <div className="w-full px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className={`text-xl font-light tracking-wide ${
-            isScrolled ? 'text-gray-900 dark:text-white' : 'text-white' // Simplified text color logic
+            isScrolled ? 'text-gray-900 dark:text-white' : 'text-white' 
           }`}>
             MAI<span className="font-medium">REALESTATE</span>
           </Link>
           
           {/* Right Actions */}
           <div className="hidden md:flex items-center gap-4">
-            {/* Dark Mode Toggle Removed */}
             {/* <DarkModeToggle /> */} 
 
             <Link to="/listings" className={`text-sm ${
@@ -155,7 +157,7 @@ export function Navbar() {
             {/* Auth Dropdown */}
             <div className="relative">
               <button
-                ref={authButtonRef} // Added ref
+                ref={authButtonRef} 
                 onClick={() => setShowAuthDropdown(!showAuthDropdown)}
                 className={`text-sm flex items-center gap-2 px-4 py-2 rounded-full border transition-colors ${
                   isScrolled 
@@ -181,7 +183,7 @@ export function Navbar() {
                             <span>{t('login')}</span>
                           </button>
                           <button
-                            onClick={() => setShowLoginForm(true)} // Assuming same form for signup for now
+                            onClick={() => setShowLoginForm(true)} 
                             className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
                             <UserPlus className="w-4 h-4" />
@@ -278,7 +280,7 @@ export function Navbar() {
                 </div>
               )}
             </div>
-          </div> {/* <-- This closing div was missing */}
+          </div> 
         </div>
       </div>
     </nav>

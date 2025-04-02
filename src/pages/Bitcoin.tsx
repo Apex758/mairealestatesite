@@ -6,6 +6,8 @@ import { translateText } from '../utils/translateUtils';
 
 export function Bitcoin() {
   const { language } = useGlobal();
+  
+  // Default content for Bitcoin page
   const [translatedContent, setTranslatedContent] = useState({
     heroTitle: 'Buy Property with Crypto in Dubai',
     heroDescription: 'While Dubai processes real estate transactions in AED through authorized escrow accounts, we guide you through converting your crypto assets for property acquisition.',
@@ -21,6 +23,7 @@ export function Bitcoin() {
     contactSpecialists: 'Contact Our Specialists'
   });
 
+  // Translate content based on selected language
   useEffect(() => {
     const translateContent = async () => {
       if (language === 'en') return;
@@ -52,8 +55,6 @@ export function Bitcoin() {
   return (
     <div className="pt-16">
       {/* Hero Section */}
-
-export default Bitcoin;
       <div className="bg-gradient-to-br from-gray-900 via-gray-900 to-orange-900 text-white py-32">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="inline-flex items-center gap-3 text-orange-400 mb-6">
@@ -74,8 +75,8 @@ export default Bitcoin;
             <div className="bg-gradient-to-br from-orange-500 to-orange-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 transition-transform group-hover:scale-110">
               <Globe2 className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-2xl font-light mb-4">{translatedContent.globalTransactions}</h3>
-            <p className="text-gray-600 leading-relaxed">
+            <h3 className="text-2xl font-light mb-4 dark:text-white">{translatedContent.globalTransactions}</h3>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
               {translatedContent.globalTransactions}
             </p>
           </div>
@@ -84,8 +85,8 @@ export default Bitcoin;
             <div className="bg-gradient-to-br from-orange-500 to-orange-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 transition-transform group-hover:scale-110">
               <Lock className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-2xl font-light mb-4">{translatedContent.legalCompliance}</h3>
-            <p className="text-gray-600 leading-relaxed">
+            <h3 className="text-2xl font-light mb-4 dark:text-white">{translatedContent.legalCompliance}</h3>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
               {translatedContent.legalCompliance}
             </p>
           </div>
@@ -94,8 +95,8 @@ export default Bitcoin;
             <div className="bg-gradient-to-br from-orange-500 to-orange-600 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 transition-transform group-hover:scale-110">
               <Wallet className="w-8 h-8 text-white" />
             </div>
-            <h3 className="text-2xl font-light mb-4">{translatedContent.assetConversion}</h3>
-            <p className="text-gray-600 leading-relaxed">
+            <h3 className="text-2xl font-light mb-4 dark:text-white">{translatedContent.assetConversion}</h3>
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
               {translatedContent.assetConversion}
             </p>
           </div>
@@ -103,47 +104,47 @@ export default Bitcoin;
       </div>
 
       {/* Process Steps */}
-      <div className="bg-gray-50 py-32">
+      <div className="bg-gray-50 dark:bg-gray-800 py-32">
         <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-3xl font-light mb-16 text-center">{translatedContent.purchaseProcess}</h2>
+          <h2 className="text-3xl font-light mb-16 text-center dark:text-white">{translatedContent.purchaseProcess}</h2>
           <div className="space-y-16">
             <div className="flex items-start gap-8 group">
-              <div className="bg-white w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm transition-all group-hover:scale-110 group-hover:shadow-md">
+              <div className="bg-white dark:bg-gray-700 w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm transition-all group-hover:scale-110 group-hover:shadow-md">
                 <span className="text-2xl font-light text-orange-500">01</span>
               </div>
               <div>
-                <h3 className="text-2xl font-light mb-4">{translatedContent.propertySelection}</h3>
-                <p className="text-gray-600 leading-relaxed">{translatedContent.propertySelection}</p>
+                <h3 className="text-2xl font-light mb-4 dark:text-white">{translatedContent.propertySelection}</h3>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{translatedContent.propertySelection}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-8 group">
-              <div className="bg-white w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm transition-all group-hover:scale-110 group-hover:shadow-md">
+              <div className="bg-white dark:bg-gray-700 w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm transition-all group-hover:scale-110 group-hover:shadow-md">
                 <span className="text-2xl font-light text-orange-500">02</span>
               </div>
               <div>
-                <h3 className="text-2xl font-light mb-4">{translatedContent.assetPlanning}</h3>
-                <p className="text-gray-600 leading-relaxed">{translatedContent.assetPlanning}</p>
+                <h3 className="text-2xl font-light mb-4 dark:text-white">{translatedContent.assetPlanning}</h3>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{translatedContent.assetPlanning}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-8 group">
-              <div className="bg-white w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm transition-all group-hover:scale-110 group-hover:shadow-md">
+              <div className="bg-white dark:bg-gray-700 w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm transition-all group-hover:scale-110 group-hover:shadow-md">
                 <span className="text-2xl font-light text-orange-500">03</span>
               </div>
               <div>
-                <h3 className="text-2xl font-light mb-4">{translatedContent.escrowSetup}</h3>
-                <p className="text-gray-600 leading-relaxed">{translatedContent.escrowSetup}</p>
+                <h3 className="text-2xl font-light mb-4 dark:text-white">{translatedContent.escrowSetup}</h3>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{translatedContent.escrowSetup}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-8 group">
-              <div className="bg-white w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm transition-all group-hover:scale-110 group-hover:shadow-md">
+              <div className="bg-white dark:bg-gray-700 w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm transition-all group-hover:scale-110 group-hover:shadow-md">
                 <span className="text-2xl font-light text-orange-500">04</span>
               </div>
               <div>
-                <h3 className="text-2xl font-light mb-4">{translatedContent.propertyTransfer}</h3>
-                <p className="text-gray-600 leading-relaxed">{translatedContent.propertyTransfer}</p>
+                <h3 className="text-2xl font-light mb-4 dark:text-white">{translatedContent.propertyTransfer}</h3>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{translatedContent.propertyTransfer}</p>
               </div>
             </div>
           </div>
@@ -167,3 +168,5 @@ export default Bitcoin;
     </div>
   );
 }
+
+export default Bitcoin;

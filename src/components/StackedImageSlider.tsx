@@ -12,6 +12,140 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
 
+  // Function declaration for moveStack to avoid reference before definition
+  const moveStack = (isFast: boolean, targetIndex?: number) => {
+    const slider = sliderRef.current;
+    if (!slider || isAnimating.current) return;
+    
+    const currentImages = Array.from(slider.querySelectorAll('img'));
+    if (currentImages.length < 5) return;
+    
+    isAnimating.current = true;
+
+    const animDuration = isFast ? 200 : 600; // FAST_ANIM_DURATION : ANIM_DURATION
+    
+    currentImages.forEach(img => {
+      img.style.transition = `transform ${animDuration}ms cubic-bezier(0.4, 0, 0.2, 1),
+                            opacity ${animDuration}ms cubic-bezier(0.4, 0, 0.2, 1),
+                            filter ${animDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+    });
+
+    // Force a reflow (variable intentionally unused)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const reflow = slider.offsetHeight;
+
+    currentImages[4].classList.add('evaporate');
+
+    currentImages[0].style.transform = 'translateX(75px)';
+    currentImages[0].style.opacity = '0.2';
+    currentImages[0].style.filter = 'blur(0.75px)';
+
+    currentImages[1].style.transform = 'translateX(55px)';
+    currentImages[1].style.opacity = '0.4';
+    currentImages[1].style.filter = 'blur(0.5px)';
+
+    currentImages[2].style.transform = 'translateX(35px)';
+    currentImages[2].style.opacity = '0.7';
+    currentImages[2].style.filter = 'blur(0.25px)';
+
+    currentImages[3].style.transform = 'translateX(0)';
+    currentImages[3].style.opacity = '1';
+    currentImages[3].style.filter = 'blur(0)';
+
+    setTimeout(() => {
+      currentImages.forEach(img => {
+        img.style.transition = '';
+        img.classList.remove('evaporate');
+      });
+
+      // If a specific target index is provided
+      if (targetIndex !== undefined) {
+        // Rotate images until the target image is on top
+        while (currentImages[4].getAttribute('src') !== images[targetIndex]) {
+          slider.appendChild(currentImages[0]);
+          const newCurrentImages = Array.from(slider.querySelectorAll('img'));
+          currentImages.length = 0;
+          currentImages.push(...newCurrentImages);
+        }
+      } else {
+        slider.appendChild(currentImages[0]);
+      }
+
+      // Reset positions
+      const resetPositions = () => {
+        const newCurrentImages = Array.from(slider.querySelectorAll('img'));
+        newCurrentImages.forEach((img, index) => {
+          img.style.transition = '';
+          img.style.animation = '';
+          img.className = '';
+  
+          if (index === 0) {
+            img.style.transform = 'translateX(95px)';
+            img.style.opacity = '0';
+            img.style.zIndex = '1';
+            img.style.filter = 'blur(1px)';
+            img.style.cursor = 'pointer';
+          } else if (index === 1) {
+            img.style.transform = 'translateX(75px)';
+            img.style.opacity = '0.2';
+            img.style.zIndex = '2';
+            img.style.filter = 'blur(0.75px)';
+            img.style.cursor = 'pointer';
+          } else if (index === 2) {
+            img.style.transform = 'translateX(55px)';
+            img.style.opacity = '0.4';
+            img.style.zIndex = '3';
+            img.style.filter = 'blur(0.5px)';
+            img.style.cursor = 'pointer';
+          } else if (index === 3) {
+            img.style.transform = 'translateX(35px)';
+            img.style.opacity = '0.7';
+            img.style.zIndex = '4';
+            img.style.filter = 'blur(0.25px)';
+            img.style.cursor = 'pointer';
+          } else if (index === 4) {
+            img.style.transform = 'translateX(0)';
+            img.style.opacity = '1';
+            img.style.zIndex = '5';
+            img.style.filter = 'blur(0)';
+            img.style.cursor = 'pointer';
+          }
+  
+          // Add click event to top image for enlargement
+          if (index === 4) {
+            img.addEventListener('click', () => {
+              handleEnlargeImage(img.getAttribute('src') || '');
+            });
+          }
+        });
+      };
+
+      resetPositions();
+
+      const newImages = slider.querySelectorAll('img');
+      newImages[0].classList.add(isFast ? 'fast-fade-in' : 'fade-in');
+
+      setTimeout(() => {
+        newImages[0].className = '';
+        newImages[0].style.animation = '';
+        isAnimating.current = false;
+
+        // Update active image index
+        const topImageSrc = newImages[4].getAttribute('src');
+        const index = images.findIndex(img => img === topImageSrc);
+        setActiveImageIndex(index);
+
+        if (isFast) {
+          const currentTopImg = slider.querySelectorAll('img')[4];
+          if (currentTopImg.getAttribute('src') === targetImageSrc.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = window.setInterval(() => moveStack(false), 4000); // NORMAL_INTERVAL
+          }
+        }
+      }, isFast ? 200 : 600); // FAST_ANIM_DURATION : ANIM_DURATION
+    }, animDuration);
+  };
+
   // Pause and resume slider functionality
   const handleEnlargeImage = (imageSrc: string) => {
     // Pause auto-rotation
@@ -61,30 +195,37 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
       }
 
       .stacked-slider img:nth-child(1) {
-        transform: translateX(75px);
+        transform: translateX(95px);
         opacity: 0;
         z-index: 1;
         filter: blur(1px);
       }
 
       .stacked-slider img:nth-child(2) {
-        transform: translateX(55px);
-        opacity: 0.33;
+        transform: translateX(75px);
+        opacity: 0.2;
         z-index: 2;
-        filter: blur(0.5px);
+        filter: blur(0.75px);
       }
 
       .stacked-slider img:nth-child(3) {
-        transform: translateX(35px);
-        opacity: 0.66;
+        transform: translateX(55px);
+        opacity: 0.4;
         z-index: 3;
-        filter: blur(0);
+        filter: blur(0.5px);
       }
 
       .stacked-slider img:nth-child(4) {
+        transform: translateX(35px);
+        opacity: 0.7;
+        z-index: 4;
+        filter: blur(0.25px);
+      }
+
+      .stacked-slider img:nth-child(5) {
         transform: translateX(0);
         opacity: 1;
-        z-index: 4;
+        z-index: 5;
         filter: blur(0);
       }
 
@@ -183,138 +324,19 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
     const slider = sliderRef.current;
     if (!slider) return;
 
-    // Ensure we have at least 4 images by duplicating if necessary
+    // Ensure we have at least 5 images by duplicating if necessary
     const normalizedImages = [...images];
-    while (normalizedImages.length < 4) {
+    while (normalizedImages.length < 5) {
       normalizedImages.push(...images);
     }
     
     // Update the slider with normalized images
-    slider.innerHTML = normalizedImages.slice(0, 4).map(src => 
+    slider.innerHTML = normalizedImages.slice(0, 5).map(src => 
       `<img src="${src}" alt="Property view" />`
     ).join('');
 
-    let currentImages = Array.from(slider.querySelectorAll('img'));
-    const ANIM_DURATION = 600;
-    const FAST_ANIM_DURATION = 200;
-    const NORMAL_INTERVAL = 4000;
-    const FAST_INTERVAL = 300;
-
-    function resetPositions() {
-      currentImages = Array.from(slider.querySelectorAll('img'));
-      currentImages.forEach((img, index) => {
-        img.style.transition = '';
-        img.style.animation = '';
-        img.className = '';
-
-        if (index === 0) {
-          img.style.transform = 'translateX(75px)';
-          img.style.opacity = '0';
-          img.style.zIndex = '1';
-          img.style.filter = 'blur(1px)';
-          img.style.cursor = 'pointer';
-        } else if (index === 1) {
-          img.style.transform = 'translateX(55px)';
-          img.style.opacity = '0.33';
-          img.style.zIndex = '2';
-          img.style.filter = 'blur(0.5px)';
-          img.style.cursor = 'pointer';
-        } else if (index === 2) {
-          img.style.transform = 'translateX(35px)';
-          img.style.opacity = '0.66';
-          img.style.zIndex = '3';
-          img.style.filter = 'blur(0)';
-          img.style.cursor = 'pointer';
-        } else if (index === 3) {
-          img.style.transform = 'translateX(0)';
-          img.style.opacity = '1';
-          img.style.zIndex = '4';
-          img.style.filter = 'blur(0)';
-          img.style.cursor = 'pointer';
-        }
-
-        // Add click event to top image for enlargement
-        if (index === 3) {
-          img.addEventListener('click', () => {
-            handleEnlargeImage(img.getAttribute('src') || '');
-          });
-        }
-      });
-    }
-
-    function moveStack(isFast: boolean, targetIndex?: number) {
-      if (isAnimating.current || currentImages.length < 4) return;
-      isAnimating.current = true;
-
-      const animDuration = isFast ? FAST_ANIM_DURATION : ANIM_DURATION;
-      
-      currentImages.forEach(img => {
-        img.style.transition = `transform ${animDuration}ms cubic-bezier(0.4, 0, 0.2, 1),
-                              opacity ${animDuration}ms cubic-bezier(0.4, 0, 0.2, 1),
-                              filter ${animDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
-      });
-
-      slider.offsetHeight;
-
-      currentImages[3].classList.add('evaporate');
-
-      currentImages[0].style.transform = 'translateX(55px)';
-      currentImages[0].style.opacity = '0.33';
-      currentImages[0].style.filter = 'blur(0.5px)';
-
-      currentImages[1].style.transform = 'translateX(35px)';
-      currentImages[1].style.opacity = '0.66';
-      currentImages[1].style.filter = 'blur(0)';
-
-      currentImages[2].style.transform = 'translateX(0)';
-      currentImages[2].style.opacity = '1';
-      currentImages[2].style.filter = 'blur(0)';
-
-      setTimeout(() => {
-        currentImages.forEach(img => {
-          img.style.transition = '';
-          img.classList.remove('evaporate');
-        });
-
-        // If a specific target index is provided
-        if (targetIndex !== undefined) {
-          // Rotate images until the target image is on top
-          while (currentImages[3].getAttribute('src') !== images[targetIndex]) {
-            slider.appendChild(currentImages[0]);
-            currentImages = Array.from(slider.querySelectorAll('img'));
-          }
-        } else {
-          slider.appendChild(currentImages[0]);
-        }
-
-        resetPositions();
-
-        const newImages = slider.querySelectorAll('img');
-        newImages[0].classList.add(isFast ? 'fast-fade-in' : 'fade-in');
-
-        setTimeout(() => {
-          newImages[0].className = '';
-          newImages[0].style.animation = '';
-          isAnimating.current = false;
-
-          // Update active image index
-          const topImageSrc = newImages[3].getAttribute('src');
-          const index = images.findIndex(img => img === topImageSrc);
-          setActiveImageIndex(index);
-
-          if (isFast) {
-            const currentTopImg = slider.querySelectorAll('img')[3];
-            if (currentTopImg.getAttribute('src') === targetImageSrc.current) {
-              clearInterval(intervalRef.current);
-              intervalRef.current = window.setInterval(() => moveStack(false), NORMAL_INTERVAL);
-            }
-          }
-        }, isFast ? FAST_ANIM_DURATION : ANIM_DURATION);
-      }, animDuration);
-    }
-
-    resetPositions();
-    intervalRef.current = window.setInterval(() => moveStack(false), NORMAL_INTERVAL);
+    // Start auto-rotation
+    intervalRef.current = window.setInterval(() => moveStack(false), 4000);
 
     return () => {
       if (intervalRef.current) {
@@ -333,62 +355,8 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
       clearInterval(intervalRef.current);
     }
 
-    // Get current images and ensure the selected image is at the top
-    let currentImages = Array.from(slider.querySelectorAll('img'));
-    
-    // Keep moving images until the desired image is at the top
-    while (currentImages[3].getAttribute('src') !== images[index]) {
-      slider.appendChild(currentImages[0]);
-      currentImages = Array.from(slider.querySelectorAll('img'));
-    }
-
-    // Reset positions and update active state
-    const resetFunc = () => {
-      let currImages = Array.from(slider.querySelectorAll('img'));
-      currImages.forEach((img, idx) => {
-        if (idx === 0) {
-          img.style.transform = 'translateX(75px)';
-          img.style.opacity = '0';
-          img.style.zIndex = '1';
-          img.style.filter = 'blur(1px)';
-        } else if (idx === 1) {
-          img.style.transform = 'translateX(55px)';
-          img.style.opacity = '0.33';
-          img.style.zIndex = '2';
-          img.style.filter = 'blur(0.5px)';
-        } else if (idx === 2) {
-          img.style.transform = 'translateX(35px)';
-          img.style.opacity = '0.66';
-          img.style.zIndex = '3';
-          img.style.filter = 'blur(0)';
-        } else if (idx === 3) {
-          img.style.transform = 'translateX(0)';
-          img.style.opacity = '1';
-          img.style.zIndex = '4';
-          img.style.filter = 'blur(0)';
-        }
-      });
-
-      // Update active image index
-      const topImageSrc = currImages[3].getAttribute('src');
-      const newIndex = images.findIndex(img => img === topImageSrc);
-      setActiveImageIndex(newIndex);
-    };
-
-    resetFunc();
-
-    // Restart auto-rotation quickly
-    setTimeout(() => {
-      // Clear any existing interval
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-
-      // Start new interval for auto-rotation
-      intervalRef.current = window.setInterval(() => {
-        moveStack(false);
-      }, 4000);
-    }, 2000); // Reduced delay to 2 seconds
+    targetImageSrc.current = images[index];
+    moveStack(true, index);
   };
 
   // If no images, show placeholder

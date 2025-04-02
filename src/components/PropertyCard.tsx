@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Heart, BedDouble, Bath, Square } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface PropertyCardProps {
   id?: string;
-  image: string;
+  slideshowImages?: string[]; // Images from the property's slideshow
   price: React.ReactNode;
   address: string;
   beds: number;
@@ -12,26 +12,49 @@ interface PropertyCardProps {
   sqft: number;
 }
 
-export function PropertyCard({ id = '1', image, price, address, beds, baths, sqft }: PropertyCardProps) {
+export function PropertyCard({ 
+  id = '1', 
+  slideshowImages = [], 
+  price, 
+  address, 
+  beds, 
+  baths, 
+  sqft 
+}: PropertyCardProps) {
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  // Use first slideshow image only
+  const displayImage = slideshowImages.length > 0 ? slideshowImages[0] : '';
+
+  const toggleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation
+    setIsFavorite(!isFavorite);
+    // TODO: Implement actual favorite logic with global state or backend
+  };
+
   return (
     <Link to={`/property/${id}`} className="block">
-      {/* Added dark mode background and shadow */}
       <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm dark:shadow-none hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-gray-700/50 transition-shadow duration-300">
         <div className="relative">
-          <img src={image} alt={address} className="w-full h-64 object-cover" />
+          <img 
+            src={displayImage} 
+            alt={address} 
+            className="w-full h-64 object-cover" 
+          />
           <button 
-            className="absolute top-4 right-4 p-2 bg-white/80 dark:bg-gray-900/80 rounded-full hover:bg-white dark:hover:bg-gray-900" // Adjusted favorite button background
-            onClick={(e) => {
-              e.preventDefault(); // Prevent navigation when clicking the heart
-              // Add favorite logic here
-            }}
+            className="absolute top-4 right-4 p-2 bg-white/80 dark:bg-gray-900/80 rounded-full hover:bg-white dark:hover:bg-gray-900"
+            onClick={toggleFavorite}
           >
-            {/* Adjusted icon color */}
-            <Heart className="w-5 h-5 text-gray-600 dark:text-gray-300" /> 
+            <Heart 
+              className={`w-5 h-5 ${
+                isFavorite 
+                  ? 'text-red-500 fill-current' 
+                  : 'text-gray-600 dark:text-gray-300'
+              }`} 
+            /> 
           </button>
         </div>
         <div className="p-5">
-          {/* Adjusted text colors */}
           <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">{price}</h3> 
           <p className="text-gray-600 dark:text-gray-400 mt-2">{address}</p> 
           <div className="flex items-center gap-4 mt-4 text-gray-500 dark:text-gray-400"> 

@@ -213,7 +213,7 @@ export function Listings() {
               <PropertyCard 
                 key={property.id}
                 id={property.id}
-                image={property.image}
+                slideshowImages={property.slideshowImages}
                 price={<CurrencyConverter amount={property.price} baseCurrency={property.currency} />}
                 address={property.address}
                 beds={property.beds}
