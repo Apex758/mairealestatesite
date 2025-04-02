@@ -244,6 +244,7 @@ export function Home() {
                 id={property.id}
                 slideshowImages={property.slideshowImages}
                 price={<CurrencyConverter amount={property.price} baseCurrency={property.currency} />}
+                name={property.name}
                 address={property.address}
                 beds={property.beds}
                 baths={property.baths}

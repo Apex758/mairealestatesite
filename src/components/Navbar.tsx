@@ -1,30 +1,20 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Phone, Bitcoin, Settings, User, LogIn, UserPlus, Heart, MessageCircle } from 'lucide-react';
+import { Phone, Bitcoin, Settings, User, LogIn, UserPlus, Heart, MessageCircle, Home } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslate } from '../hooks/useTranslate';
-// Removed unused DarkModeToggle import
+import { useAuth } from '../contexts/AuthContext';
 
-// Admin login credentials (secure in production)
+// Admin email (secure in production)
 const ADMIN_EMAIL = 'admin@mairealestate.com';
-const ADMIN_PASSWORD = 'mai2025admin';
-
-interface AuthState {
-  isLoggedIn: boolean;
-  isAdmin: boolean;
-  email: string;
-}
 
 export function Navbar() {
   const { t } = useTranslate();
+  const { user, isAuthenticated, login, logout, register } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [showAuthDropdown, setShowAuthDropdown] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
-  const [auth, setAuth] = useState<AuthState>({
-    isLoggedIn: false,
-    isAdmin: false,
-    email: ''
-  });
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -33,6 +23,12 @@ export function Navbar() {
   const [loginData, setLoginData] = useState({
     email: '',
     password: ''
+  });
+  const [registerData, setRegisterData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
   });
 
   // Determine navbar scroll behavior for specific pages
@@ -72,42 +68,83 @@ export function Navbar() {
     };
   }, [location, alwaysScrolled]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (loginData.email === ADMIN_EMAIL && loginData.password === ADMIN_PASSWORD) {
-      setAuth({
-        isLoggedIn: true,
-        isAdmin: true,
-        email: loginData.email
-      });
-      toast.success('Welcome back, Admin!');
+    // Try to login with the provided credentials
+    const success = await login(loginData.email, loginData.password);
+    
+    if (success) {
       setShowAuthDropdown(false);
       setShowLoginForm(false);
-      navigate('/page-manager');
+      
+      // Check if this is an admin login
+      if (loginData.email === ADMIN_EMAIL) {
+        toast.success('Welcome back, Admin!');
+        navigate('/page-manager');
+      } else {
+        toast.success('Successfully logged in!');
+        navigate('/dashboard');
+      }
     } else {
-      setAuth({
-        isLoggedIn: true,
-        isAdmin: false,
-        email: loginData.email
-      });
-      toast.success('Successfully logged in!');
-      setShowAuthDropdown(false);
-      setShowLoginForm(false);
+      toast.error('Invalid email or password');
     }
     
     setLoginData({ email: '', password: '' });
   };
 
-  const handleLogout = () => {
-    setAuth({
-      isLoggedIn: false,
-      isAdmin: false,
-      email: ''
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (registerData.password !== registerData.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    
+    // Don't allow registering with admin email
+    if (registerData.email === ADMIN_EMAIL) {
+      toast.error('This email cannot be used for registration');
+      return;
+    }
+    
+    try {
+      // Call the register function from AuthContext
+      const success = await register(
+        registerData.name,
+        registerData.email, 
+        registerData.password
+      );
+      
+      if (success) {
+        toast.success('Account created successfully!');
+        setShowAuthDropdown(false);
+        setShowRegisterForm(false);
+        navigate('/dashboard');
+      } else {
+        toast.error('Failed to create account');
+      }
+    } catch {
+      toast.error('Failed to create account');
+    }
+    
+    setRegisterData({
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
     });
+  };
+
+  const handleLogout = () => {
+    logout();
     toast.success('Successfully logged out');
     setShowAuthDropdown(false);
-    if (location.pathname === '/page-manager') {
+    
+    // Redirect if on protected pages
+    if (location.pathname === '/dashboard' || 
+        location.pathname === '/favorites' || 
+        location.pathname === '/messages' || 
+        location.pathname === '/page-manager') {
       navigate('/');
     }
   };
@@ -135,6 +172,11 @@ export function Navbar() {
               isScrolled ? 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white' : 'text-white/80 hover:text-white'
             }`}>
               {t('listings')}
+            </Link>
+            <Link to="/about" className={`text-sm ${
+              isScrolled ? 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white' : 'text-white/80 hover:text-white'
+            }`}>
+              About Us
             </Link>
             <Link to="/bitcoin" className={`text-sm flex items-center gap-1 ${
               isScrolled ? 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white' : 'text-white/80 hover:text-white'
@@ -166,14 +208,14 @@ export function Navbar() {
                 }`}
               >
                 <User className="w-4 h-4" />
-                {auth.isLoggedIn ? t('account') : t('login')}
+              {isAuthenticated ? t('account') : t('login')}
               </button>
 
               {showAuthDropdown && (
                 <div ref={dropdownRef} className="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-lg py-2 border border-gray-100 dark:border-gray-700">
-                  {!auth.isLoggedIn ? (
+                  {!isAuthenticated ? (
                     <>
-                      {!showLoginForm ? (
+                      {!showLoginForm && !showRegisterForm ? (
                         <div className="p-4 space-y-2">
                           <button
                             onClick={() => setShowLoginForm(true)}
@@ -183,7 +225,10 @@ export function Navbar() {
                             <span>{t('login')}</span>
                           </button>
                           <button
-                            onClick={() => setShowLoginForm(true)} 
+                            onClick={() => {
+                              setShowLoginForm(false);
+                              setShowRegisterForm(true);
+                            }} 
                             className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
                             <UserPlus className="w-4 h-4" />
@@ -193,7 +238,7 @@ export function Navbar() {
                             Login to save your favorite properties and chat with our team
                           </p>
                         </div>
-                      ) : (
+                      ) : showLoginForm ? (
                         <form onSubmit={handleLogin} className="p-4 space-y-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -225,45 +270,142 @@ export function Navbar() {
                           >
                             Login
                           </button>
+                          <div className="flex justify-between">
+                            <button
+                              type="button"
+                              onClick={() => setShowLoginForm(false)}
+                              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                            >
+                              Back
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowLoginForm(false);
+                                setShowRegisterForm(true);
+                              }}
+                              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                            >
+                              Register
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        <form onSubmit={handleRegister} className="p-4 space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              Name
+                            </label>
+                            <input
+                              type="text"
+                              value={registerData.name}
+                              onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              Email
+                            </label>
+                            <input
+                              type="email"
+                              value={registerData.email}
+                              onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              Password
+                            </label>
+                            <input
+                              type="password"
+                              value={registerData.password}
+                              onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              Confirm Password
+                            </label>
+                            <input
+                              type="password"
+                              value={registerData.confirmPassword}
+                              onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                              required
+                            />
+                          </div>
                           <button
-                            type="button"
-                            onClick={() => setShowLoginForm(false)}
-                            className="w-full text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                            type="submit"
+                            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                           >
-                            Back
+                            Register
                           </button>
+                          <div className="flex justify-between">
+                            <button
+                              type="button"
+                              onClick={() => setShowRegisterForm(false)}
+                              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                            >
+                              Back
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowRegisterForm(false);
+                                setShowLoginForm(true);
+                              }}
+                              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                            >
+                              Login
+                            </button>
+                          </div>
                         </form>
                       )}
                     </>
                   ) : (
                     <div className="p-4 space-y-2">
                       <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
-                        Signed in as <span className="font-medium text-gray-900 dark:text-white">{auth.email}</span>
+                        Signed in as <span className="font-medium text-gray-900 dark:text-white">{user?.email}</span>
                       </div>
                       <div className="border-t border-gray-100 dark:border-gray-700" />
-                      <Link
-                        to="/favorites"
-                        className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        <Heart className="w-4 h-4" />
-                        <span>{t('favorites')}</span>
-                      </Link>
-                      <Link
-                        to="/messages"
-                        className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        <span>{t('messages')}</span>
-                      </Link>
-                      {auth.isAdmin && (
+                      {user?.email === ADMIN_EMAIL ? (
+                        // Admin-only menu items
+                        <Link
+                          to="/page-manager"
+                          className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          <Settings className="w-4 h-4" />
+                          <span>{t('pageManager')}</span>
+                        </Link>
+                      ) : (
+                        // Regular user menu items
                         <>
-                          <div className="border-t border-gray-100 dark:border-gray-700" />
                           <Link
-                            to="/page-manager"
+                            to="/dashboard"
                             className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
-                            <Settings className="w-4 h-4" />
-                            <span>{t('pageManager')}</span>
+                            <Home className="w-4 h-4" />
+                            <span>Dashboard</span>
+                          </Link>
+                          <Link
+                            to="/favorites"
+                            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            <Heart className="w-4 h-4" />
+                            <span>{t('favorites')}</span>
+                          </Link>
+                          <Link
+                            to="/messages"
+                            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                            <span>{t('messages')}</span>
                           </Link>
                         </>
                       )}

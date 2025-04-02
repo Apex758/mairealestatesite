@@ -112,21 +112,24 @@ export function Contact() {
                 <MapPin className="w-6 h-6 text-blue-600" />
                 <div>
                   <h3 className="font-medium">{translatedContent.address}</h3>
-                  <p className="text-gray-600">123 Luxury Real Estate Blvd<br />Beverly Hills, CA 90210</p>
+                  <p className="text-gray-600">
+                    Dubai Investment Park<br />
+                    Dubai, United Arab Emirates
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
                 <Phone className="w-6 h-6 text-blue-600" />
                 <div>
                   <h3 className="font-medium">{translatedContent.phone}</h3>
-                  <p className="text-gray-600">+1 (310) 555-0123</p>
+                  <p className="text-gray-600">+971 52 229 2717</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
                 <Mail className="w-6 h-6 text-blue-600" />
                 <div>
                   <h3 className="font-medium">{translatedContent.email}</h3>
-                  <p className="text-gray-600">contact@realestate.com</p>
+                  <p className="text-gray-600">contact@mairealestate.ae</p>
                 </div>
               </div>
             </div>
@@ -134,9 +137,7 @@ export function Contact() {
             <div className="mt-8">
               <h2 className="text-2xl font-semibold mb-6">{translatedContent.officeHours}</h2>
               <div className="space-y-2 text-gray-600">
-                <p>{translatedContent.mondayFriday}</p>
-                <p>{translatedContent.saturday}</p>
-                <p>{translatedContent.sunday}</p>
+                <p>Monday to Saturday: 9:00 AM - 6:00 PM</p>
               </div>
             </div>
           </div>

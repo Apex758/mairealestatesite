@@ -188,10 +188,10 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
     subscribeNewsletter: 'Subscribe to our newsletter for the latest updates.',
     yourEmail: 'Your email',
     subscribe: 'Subscribe',
-    allRightsReserved: '© 2025 RealEstate. All rights reserved.',
+    allRightsReserved: '© 2025 MAIREALESTATE. All rights reserved.',
     translating: 'Translating'
   },
-  ar: {
+ ar: {
     home: 'الرئيسية',
     listings: 'العقارات',
     contact: 'اتصل بنا',
@@ -283,7 +283,7 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
     subscribeNewsletter: 'اشترك في نشرتنا الإخبارية للحصول على آخر التحديثات.',
     yourEmail: 'بريدك الإلكتروني',
     subscribe: 'اشترك',
-    allRightsReserved: '© 2025 عقارات. جميع الحقوق محفوظة.',
+    allRightsReserved: '© 2025 MAIREALESTATE. جميع الحقوق محفوظة.',
     translating: 'جاري الترجمة'
   },
   ro: {
@@ -378,7 +378,7 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
     subscribeNewsletter: 'Abonează-te la newsletter pentru cele mai recente actualizări.',
     yourEmail: 'Email-ul tău',
     subscribe: 'Abonează-te',
-    allRightsReserved: '© 2025 RealEstate. Toate drepturile rezervate.',
+    allRightsReserved: '© 2025 MAIRealEstate. Toate drepturile rezervate.',
     translating: 'Se traduce'
   }
 };

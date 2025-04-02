@@ -1,37 +1,38 @@
-import React, { useState } from 'react';
-import { MessageCircle, Send, User } from 'lucide-react';
-
-interface Message {
-  id: string;
-  sender: string;
-  content: string;
-  timestamp: Date;
-  read: boolean;
-}
+import React, { useState, useEffect } from 'react';
+import { MessageCircle, Send, User, Home } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useUserStore } from '../stores/userStore';
+import { toast } from 'sonner';
 
 export function Messages() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      sender: 'MAI Real Estate Support',
-      content: 'Welcome to MAI Real Estate! How can we help you today?',
-      timestamp: new Date(),
-      read: false
-    }
-  ]);
-
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const { messages, sendMessage, markMessageAsRead } = useUserStore();
   const [newMessage, setNewMessage] = useState('');
+  
+  // Redirect to home if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/');
+      toast.error('Please login to view your messages');
+    }
+  }, [isAuthenticated, navigate]);
+  
+  // Mark all messages as read when the component mounts
+  useEffect(() => {
+    if (isAuthenticated) {
+      messages.forEach(msg => {
+        if (!msg.read) {
+          markMessageAsRead(msg.id);
+        }
+      });
+    }
+  }, [isAuthenticated, messages, markMessageAsRead]);
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
-      const message: Message = {
-        id: `${Date.now()}`,
-        sender: 'You',
-        content: newMessage,
-        timestamp: new Date(),
-        read: true
-      };
-      setMessages([...messages, message]);
+      sendMessage(newMessage, true);
       setNewMessage('');
     }
   };
@@ -39,13 +40,37 @@ export function Messages() {
   return (
     <div className="pt-16 min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-4 mb-8">
-          <MessageCircle className="w-8 h-8 text-gray-600 dark:text-gray-300" />
-          <h1 className="text-3xl font-light text-gray-900 dark:text-white">Messages</h1>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <MessageCircle className="w-8 h-8 text-blue-500" />
+            <h1 className="text-3xl font-light text-gray-900 dark:text-white">Messages</h1>
+          </div>
+          
+          <Link 
+            to="/dashboard" 
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+          >
+            <Home className="w-4 h-4" />
+            <span>Dashboard</span>
+          </Link>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
-          <div className="h-[500px] overflow-y-auto p-6">
+        {!isAuthenticated ? (
+          <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+            <MessageCircle className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+            <p className="text-gray-600 dark:text-gray-400">
+              Please login to view your messages
+            </p>
+            <Link 
+              to="/" 
+              className="inline-block mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Go to Home
+            </Link>
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+            <div className="h-[500px] overflow-y-auto p-6">
             {messages.map((msg) => (
               <div 
                 key={msg.id} 
@@ -68,9 +93,9 @@ export function Messages() {
                 </div>
               </div>
             ))}
-          </div>
-          
-          <div className="border-t dark:border-gray-700 p-4 flex items-center gap-4">
+            </div>
+            
+            <div className="border-t dark:border-gray-700 p-4 flex items-center gap-4">
             <input
               type="text"
               value={newMessage}
@@ -84,8 +109,9 @@ export function Messages() {
             >
               <Send className="w-5 h-5" />
             </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

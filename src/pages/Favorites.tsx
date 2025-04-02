@@ -1,58 +1,55 @@
-import React, { useState } from 'react';
-import { Heart, MapPin, Bed, Bath, Ruler } from 'lucide-react';
-import { Link } from 'react-router-dom';
-
-interface FavoriteProperty {
-  id: string;
-  name: string;
-  image: string;
-  address: string;
-  price: number;
-  currency: string;
-  beds: number;
-  baths: number;
-  sqft: number;
-}
+import React, { useEffect } from 'react';
+import { Heart, MapPin, Bed, Bath, Ruler, Home } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useUserStore } from '../stores/userStore';
+import { toast } from 'sonner';
 
 export function Favorites() {
-  const [favoriteProperties, setFavoriteProperties] = useState<FavoriteProperty[]>([
-    {
-      id: 'prop1',
-      name: 'Luxury Dubai Marina Apartment',
-      image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      address: '123 Marina Walk, Dubai Marina, Dubai',
-      price: 1500000,
-      currency: 'AED',
-      beds: 3,
-      baths: 2,
-      sqft: 2500
-    },
-    {
-      id: 'prop2',
-      name: 'Palm Jumeirah Villa',
-      image: 'https://images.unsplash.com/photo-1580041065738-e4b7a6c10f38?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      address: '456 Palm Jumeirah, Dubai',
-      price: 5000000,
-      currency: 'AED',
-      beds: 5,
-      baths: 4,
-      sqft: 6000
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const { favorites, removeFromFavorites } = useUserStore();
+  
+  // Redirect to home if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/');
+      toast.error('Please login to view your favorites');
     }
-  ]);
-
-  const removeFromFavorites = (propertyId: string) => {
-    setFavoriteProperties(favoriteProperties.filter(prop => prop.id !== propertyId));
-  };
+  }, [isAuthenticated, navigate]);
 
   return (
     <div className="pt-16 min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-4 mb-8">
-          <Heart className="w-8 h-8 text-red-500" />
-          <h1 className="text-3xl font-light text-gray-900 dark:text-white">My Favorites</h1>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Heart className="w-8 h-8 text-red-500" />
+            <h1 className="text-3xl font-light text-gray-900 dark:text-white">My Favorites</h1>
+          </div>
+          
+          <Link 
+            to="/dashboard" 
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+          >
+            <Home className="w-4 h-4" />
+            <span>Dashboard</span>
+          </Link>
         </div>
 
-        {favoriteProperties.length === 0 ? (
+        {!isAuthenticated ? (
+          <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+            <Heart className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+            <p className="text-gray-600 dark:text-gray-400">
+              Please login to view your favorites
+            </p>
+            <Link 
+              to="/" 
+              className="inline-block mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Go to Home
+            </Link>
+          </div>
+        ) : favorites.length === 0 ? (
           <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
             <Heart className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
             <p className="text-gray-600 dark:text-gray-400">
@@ -67,7 +64,7 @@ export function Favorites() {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {favoriteProperties.map((property) => (
+            {favorites.map((property) => (
               <div 
                 key={property.id} 
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden group"

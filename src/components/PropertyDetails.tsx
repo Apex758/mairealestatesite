@@ -2,11 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog } from '@headlessui/react';
 import { PropertyCard } from './PropertyCard';
 import { GoogleMap, NearbyPlace } from './GoogleMap';
-import { Store, Utensils, Building2, School, Train, Sparkle as Park, MapPin, Plus } from 'lucide-react';
+import { Store, Utensils, Building2, School, Train, Sparkle as Park, MapPin, Plus, Heart } from 'lucide-react';
 import { useTranslate } from '../hooks/useTranslate';
 import { TranslationKey } from '../translations';
 import { useGlobal } from '../contexts/GlobalContext';
 import { translateText } from '../utils/translateUtils';
+import { useUserStore, FavoriteProperty } from '../stores/userStore';
+import { toast } from 'sonner';
+import { useAuth } from '../contexts/AuthContext';
 
 // Feature list item component for consistent rendering
 function FeatureListItem({ feature, isTranslating, t }: { feature: string; isTranslating: boolean; t: (key: TranslationKey) => string }) {
@@ -28,6 +31,7 @@ function FeatureListItem({ feature, isTranslating, t }: { feature: string; isTra
 }
 
 interface PropertyDetailsProps {
+  id: string; // Added property ID
   details: {
     bedrooms: number;
     bathrooms: number;
@@ -50,6 +54,7 @@ interface PropertyDetailsProps {
   location: {
     lat?: number;
     lng?: number;
+    address?: string; // Added address
     distances: Array<{
       place: string;
       time: number;
@@ -69,6 +74,9 @@ interface PropertyDetailsProps {
     formattedPrice?: string;
   }>;
   brochureImages?: string[];
+  price?: number; // Added price
+  currency?: string; // Added currency
+  name?: string; // Added property name
 }
 
 // Define place types and their icons
@@ -103,15 +111,22 @@ const placeTypeToDescriptionKey: Record<string, TranslationKey> = {
 };
 
 export function PropertyDetails({
+  id,
   details,
   payment,
   features = { residences: [], luxuryWellness: [], retailDining: [] },
   location,
   similarProperties,
-  brochureImages = []
+  brochureImages = [],
+  price = 0,
+  currency = 'AED',
+  name = 'Luxury Property'
 }: PropertyDetailsProps) {
   const { t } = useTranslate();
   const { language } = useGlobal();
+  const { isAuthenticated } = useAuth();
+  const { addToFavorites, removeFromFavorites, isFavorite } = useUserStore();
+  const [isFavorited, setIsFavorited] = useState(false);
   const [translatedFeatures, setTranslatedFeatures] = useState(features);
   const [isTranslating, setIsTranslating] = useState(false);
 
@@ -195,10 +210,46 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
     setSelectedNearbyPlace(null);
   }, [selectedPlaceType]);
 
+  // Check if property is in favorites
+  useEffect(() => {
+    setIsFavorited(isFavorite(id));
+  }, [id, isFavorite]);
+
   // Debug nearby places
   useEffect(() => {
     console.log(`PropertyDetails has ${nearbyPlaces.length} nearby places in state`);
   }, [nearbyPlaces]);
+
+  // Handle favorite toggle
+  const handleFavoriteToggle = () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to add properties to favorites');
+      return;
+    }
+
+    if (isFavorited) {
+      removeFromFavorites(id);
+      toast.success('Removed from favorites');
+    } else {
+      // Create favorite property object
+      const favoriteProperty: FavoriteProperty = {
+        id,
+        name,
+        image: brochureImages && brochureImages.length > 0 ? brochureImages[0] : '/property-placeholder.jpg',
+        address: location.address || 'Dubai, UAE',
+        price,
+        currency,
+        beds: details.bedrooms,
+        baths: details.bathrooms,
+        sqft: details.size.max
+      };
+      
+      addToFavorites(favoriteProperty);
+      toast.success('Added to favorites');
+    }
+    
+    setIsFavorited(!isFavorited);
+  };
   
   // Preserve place list once it's fetched until a new type is selected
   useEffect(() => {
@@ -317,10 +368,21 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
 
 {/* Property Details Section */}
       <div className="mb-16">
-        <div className="flex items-center justify-end gap-4 mb-8">
+        <div className="flex items-center justify-between gap-4 mb-8">
           {/* Added dark mode border and text */}
           <div className="flex-1 border-b border-gray-200 dark:border-gray-700" /> 
-          <h2 className="text-2xl font-light text-gray-900 dark:text-white">{t('propertyDetails')}</h2> 
+          <h2 className="text-2xl font-light text-gray-900 dark:text-white">{t('propertyDetails')}</h2>
+          
+          {/* Favorite button */}
+          <button 
+            onClick={handleFavoriteToggle}
+            className="flex items-center justify-center p-2 rounded-full bg-white dark:bg-gray-800 shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+          >
+            <Heart 
+              className={`w-6 h-6 ${isFavorited ? 'text-red-500 fill-current' : 'text-gray-400 dark:text-gray-500'}`} 
+            />
+          </button>
         </div>
 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Added dark mode background and text */}
@@ -563,6 +625,7 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
                 id={property.id}
                 slideshowImages={[property.image]} // Convert single image to array for slideshowImages
                 price={property.formattedPrice || `$${new Intl.NumberFormat().format(property.price)}`}
+                name={property.name}
                 address={property.name}
                 beds={property.bedrooms}
                 baths={property.bathrooms}
