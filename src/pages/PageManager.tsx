@@ -163,6 +163,7 @@ const DEFAULT_HOMEPAGE: HomepageSettings = {
 export function PageManager() {
   const [activeProperty, setActiveProperty] = useState<string | null>(null);
   const [editingMode, setEditingMode] = useState<'details' | 'slideshow' | 'location' | 'amenities' | 'hosting' | 'content' | 'homepage'>('details');
+  const [selectedPlaceType, setSelectedPlaceType] = useState<string | null>("restaurant");
   // Initialize homepage settings from localStorage or use defaults
   const [homepageSettings, setHomepageSettings] = useState<HomepageSettings>(() => {
     const savedSettings = localStorage.getItem('homepageSettings');
@@ -288,6 +289,10 @@ const [showPreview, setShowPreview] = useState(false);
   const createNewProperty = () => {
     const newId = `property-${Date.now()}`;
     
+    // Generate a random location near Dubai Marina for each new property
+    // This ensures each property has a unique location
+    const randomOffset = () => (Math.random() - 0.5) * 0.02; // Random offset of about ±0.01 degrees (roughly 1km)
+    
     const newProperty: Property = {
       id: newId,
       name: 'New Property',
@@ -298,7 +303,7 @@ const [showPreview, setShowPreview] = useState(false);
       imageTags: {},
       price: 0,
       currency: 'AED',
-      address: '',
+      address: 'Dubai Marina, Dubai, UAE',
       beds: 0,
       baths: 0,
       sqft: 0,
@@ -309,8 +314,8 @@ const [showPreview, setShowPreview] = useState(false);
         retailDining: []
       },
       location: {
-        lat: 25.2048, // Dubai default
-        lng: 55.2708,
+        lat: 25.2048 + randomOffset(), // Dubai Marina with random offset
+        lng: 55.2708 + randomOffset(),
         distances: []
       },
       published: false,
@@ -760,16 +765,145 @@ const [showPreview, setShowPreview] = useState(false);
                           />
                         </div>
                       </div>
-                      <GoogleMap
-                        center={currentProperty.location}
-                        onCenterChange={(location) => handlePropertyUpdate({ 
-                          location: {
-                            ...currentProperty.location,
-                            lat: location.lat,
-                            lng: location.lng
-                          }
-                        })}
-                      />
+                      <div className="mb-4">
+                        <div className="mb-4">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Location URL (Google Maps)
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              placeholder="Paste Google Maps URL here"
+                              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
+                              onBlur={(e) => {
+                                try {
+                                  // Try to extract coordinates from Google Maps URL
+                                  const url = e.target.value;
+                                  if (url && url.includes('@')) {
+                                    const match = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+                                    if (match && match.length === 3) {
+                                      const lat = parseFloat(match[1]);
+                                      const lng = parseFloat(match[2]);
+                                      if (!isNaN(lat) && !isNaN(lng)) {
+                                        // Update the property's location with the new coordinates
+                                        handlePropertyUpdate({
+                                          location: {
+                                            ...currentProperty.location,
+                                            lat,
+                                            lng
+                                          },
+                                          // Also update the address based on the location
+                                          address: `Location at ${lat.toFixed(4)}, ${lng.toFixed(4)}`
+                                        });
+                                        
+                                        // Try to get a proper address using reverse geocoding
+                                        if (window.google && window.google.maps) {
+                                          const geocoder = new window.google.maps.Geocoder();
+                                          geocoder.geocode(
+                                            { location: { lat, lng } },
+                                            (results, status) => {
+                                              if (status === 'OK' && results && results[0]) {
+                                                handlePropertyUpdate({
+                                                  address: results[0].formatted_address
+                                                });
+                                              }
+                                            }
+                                          );
+                                        }
+                                        
+                                        toast.success('Location updated from URL');
+                                      }
+                                    }
+                                  }
+                                } catch (error) {
+                                  console.error('Error parsing Google Maps URL:', error);
+                                }
+                              }}
+                            />
+                            <button
+                              onClick={() => {
+                                // Open current location in Google Maps
+                                const url = `https://www.google.com/maps/search/?api=1&query=${currentProperty.location.lat},${currentProperty.location.lng}`;
+                                window.open(url, '_blank');
+                              }}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                            >
+                              View in Maps
+                            </button>
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Paste a Google Maps URL or move the marker on the map below
+                          </p>
+                        </div>
+                        
+                        <GoogleMap
+                          center={currentProperty.location}
+                          onCenterChange={(location) => {
+                            console.log("Map center changed:", location);
+                            handlePropertyUpdate({ 
+                              location: {
+                                ...currentProperty.location,
+                                lat: location.lat,
+                                lng: location.lng
+                              }
+                            });
+                          }}
+                          selectedType={selectedPlaceType}
+                          travelMode="WALKING"
+                          markerColor="red"
+                          readOnly={false} // Explicitly set to false to allow location changes
+                          onNearbyPlacesFound={(places) => {
+                            console.log(`PageManager received ${places.length} nearby places`);
+                          }}
+                        />
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <button
+                            onClick={() => setSelectedPlaceType("restaurant")}
+                            className={`px-3 py-1.5 ${selectedPlaceType === "restaurant" ? 
+                              "bg-gray-900 text-white dark:bg-gray-600" : 
+                              "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"} 
+                              rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-sm`}
+                          >
+                            Restaurants
+                          </button>
+                          <button
+                            onClick={() => setSelectedPlaceType("cafe")}
+                            className={`px-3 py-1.5 ${selectedPlaceType === "cafe" ? 
+                              "bg-gray-900 text-white dark:bg-gray-600" : 
+                              "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"} 
+                              rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-sm`}
+                          >
+                            Cafes
+                          </button>
+                          <button
+                            onClick={() => setSelectedPlaceType("school")}
+                            className={`px-3 py-1.5 ${selectedPlaceType === "school" ? 
+                              "bg-gray-900 text-white dark:bg-gray-600" : 
+                              "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"} 
+                              rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-sm`}
+                          >
+                            Schools
+                          </button>
+                          <button
+                            onClick={() => setSelectedPlaceType("supermarket")}
+                            className={`px-3 py-1.5 ${selectedPlaceType === "supermarket" ? 
+                              "bg-gray-900 text-white dark:bg-gray-600" : 
+                              "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"} 
+                              rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-sm`}
+                          >
+                            Supermarkets
+                          </button>
+                          <button
+                            onClick={() => setSelectedPlaceType("transit_station")}
+                            className={`px-3 py-1.5 ${selectedPlaceType === "transit_station" ? 
+                              "bg-gray-900 text-white dark:bg-gray-600" : 
+                              "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"} 
+                              rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-sm`}
+                          >
+                            Transit
+                          </button>
+                        </div>
+                      </div>
                       
                       <div className="mt-8">
                         <h3 className="text-lg font-semibold mb-4">Nearby Places</h3>

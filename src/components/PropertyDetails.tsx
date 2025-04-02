@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog } from '@headlessui/react';
 import { PropertyCard } from './PropertyCard';
-import { GoogleMap } from './GoogleMap';
+import { GoogleMap, NearbyPlace } from './GoogleMap';
 import { Store, Utensils, Building2, School, Train, Sparkle as Park, MapPin, Plus } from 'lucide-react';
 import { useTranslate } from '../hooks/useTranslate';
 import { TranslationKey } from '../translations';
@@ -149,19 +149,9 @@ export function PropertyDetails({
   }, [features, language]);
   const [selectedPlaceType, setSelectedPlaceType] = useState<string | null>(null);
   const [selectedPredefinedPlace, setSelectedPredefinedPlace] = useState<number | null>(null);
-  // Define a type for place objects
-  interface Place {
-    id: string;
-    name: string;
-    vicinity: string;
-    distance: string;
-    duration: string;
-    stableIndex?: number;
-  }
-  
-  const [selectedNearbyPlace, setSelectedNearbyPlace] = useState<Place | null>(null);
-  const [placeCache, setPlaceCache] = useState<Record<string, Place[]>>({});
-const [nearbyPlaces, setNearbyPlaces] = useState<Place[]>([]);
+  const [selectedNearbyPlace, setSelectedNearbyPlace] = useState<NearbyPlace | null>(null);
+  const [placeCache, setPlaceCache] = useState<Record<string, NearbyPlace[]>>({});
+  const [nearbyPlaces, setNearbyPlaces] = useState<NearbyPlace[]>([]);
 const [isBrochureOpen, setIsBrochureOpen] = useState(false);
 const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [mapCenter, setMapCenter] = useState({
@@ -169,11 +159,29 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
     lng: location?.lng || 0
   });
   
+  // Update map center when location prop changes
+  useEffect(() => {
+    if (location?.lat && location?.lng) {
+      console.log(`PropertyDetails: Location changed to ${location.lat}, ${location.lng}`);
+      setMapCenter({
+        lat: location.lat,
+        lng: location.lng
+      });
+      
+      // Clear place cache when location changes
+      // This ensures we don't show cached places from a different location
+      setPlaceCache({});
+      setNearbyPlaces([]);
+      setSelectedNearbyPlace(null);
+    }
+  }, [location]);
+  
   // Set default travel mode to WALKING
   const travelMode = 'WALKING';
   
-  // Set a flag for read-only mode (this could be passed as a prop)
-  const readOnly = false;
+  // Set a flag for read-only mode - always true for PropertyDetails
+  // This ensures the location can't be changed from PropertyDetails
+  const readOnly = true;
 
   const distances = location?.distances || [];
 
@@ -186,6 +194,11 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
     setNearbyPlaces([]);
     setSelectedNearbyPlace(null);
   }, [selectedPlaceType]);
+
+  // Debug nearby places
+  useEffect(() => {
+    console.log(`PropertyDetails has ${nearbyPlaces.length} nearby places in state`);
+  }, [nearbyPlaces]);
   
   // Preserve place list once it's fetched until a new type is selected
   useEffect(() => {
@@ -210,6 +223,9 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
       console.log(`Using cached places for ${type}`);
       setNearbyPlaces(placeCache[type]);
       setSelectedPlaceType(type);
+      // Even with cached places, we need to reset selections to ensure map updates
+      setSelectedPredefinedPlace(null);
+      setSelectedNearbyPlace(null);
       return;
     }
     
@@ -220,7 +236,7 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
   };
 
   // Handler for when nearby places are found by the GoogleMap component
-  const handleNearbyPlacesFound = (places: Place[]) => {
+  const handleNearbyPlacesFound = (places: NearbyPlace[]) => {
     console.log(`PropertyDetails received ${places.length} nearby places`);
     
     // Cache the places by their type
@@ -232,6 +248,7 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
     }
     
     setNearbyPlaces(places);
+    console.log("Updated nearbyPlaces state with new places");
   };
 
   return (
