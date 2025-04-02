@@ -15,23 +15,26 @@ interface PropertyCardProps {
 export function PropertyCard({ id = '1', image, price, address, beds, baths, sqft }: PropertyCardProps) {
   return (
     <Link to={`/property/${id}`} className="block">
-      <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+      {/* Added dark mode background and shadow */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm dark:shadow-none hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-gray-700/50 transition-shadow duration-300">
         <div className="relative">
           <img src={image} alt={address} className="w-full h-64 object-cover" />
           <button 
-            className="absolute top-4 right-4 p-2 bg-white/80 rounded-full hover:bg-white"
+            className="absolute top-4 right-4 p-2 bg-white/80 dark:bg-gray-900/80 rounded-full hover:bg-white dark:hover:bg-gray-900" // Adjusted favorite button background
             onClick={(e) => {
               e.preventDefault(); // Prevent navigation when clicking the heart
               // Add favorite logic here
             }}
           >
-            <Heart className="w-5 h-5 text-gray-600" />
+            {/* Adjusted icon color */}
+            <Heart className="w-5 h-5 text-gray-600 dark:text-gray-300" /> 
           </button>
         </div>
         <div className="p-5">
-          <h3 className="text-2xl font-semibold text-gray-900">{price}</h3>
-          <p className="text-gray-600 mt-2">{address}</p>
-          <div className="flex items-center gap-4 mt-4 text-gray-500">
+          {/* Adjusted text colors */}
+          <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">{price}</h3> 
+          <p className="text-gray-600 dark:text-gray-400 mt-2">{address}</p> 
+          <div className="flex items-center gap-4 mt-4 text-gray-500 dark:text-gray-400"> 
             <div className="flex items-center gap-1">
               <BedDouble className="w-4 h-4" />
               <span>{beds} beds</span>

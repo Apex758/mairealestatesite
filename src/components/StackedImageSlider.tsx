@@ -5,11 +5,29 @@ interface StackedImageSliderProps {
 }
 
 export function StackedImageSlider({ images }: StackedImageSliderProps) {
-  const sliderRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLDivElement | null>(null);
   const isAnimating = useRef(false);
   const intervalRef = useRef<number>();
   const targetImageSrc = useRef<string | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
+
+  // Pause and resume slider functionality
+  const handleEnlargeImage = (imageSrc: string) => {
+    // Pause auto-rotation
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    setEnlargedImage(imageSrc);
+  };
+
+  const handleCloseEnlarged = () => {
+    // Restart auto-rotation
+    intervalRef.current = window.setInterval(() => {
+      moveStack(false);
+    }, 4000);
+    setEnlargedImage(null);
+  };
 
   useEffect(() => {
     const styleEl = document.createElement('style');
@@ -70,51 +88,6 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
         filter: blur(0);
       }
 
-      @keyframes evaporate {
-        0% {
-          transform: translateX(0);
-          opacity: 1;
-          filter: blur(0);
-        }
-        100% {
-          transform: translateX(-50px) scale(0.95);
-          opacity: 0;
-          filter: blur(4px);
-        }
-      }
-
-      @keyframes fadeIn {
-        0% {
-          transform: translateX(-100px);
-          opacity: 0;
-          filter: blur(4px);
-        }
-        100% {
-          transform: translateX(75px);
-          opacity: 0;
-          filter: blur(1px);
-        }
-      }
-
-      .evaporate {
-        animation: evaporate 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
-      }
-
-      .fade-in {
-        animation: fadeIn 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
-      }
-
-      .fast-fade-in {
-        animation: fadeIn 200ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
-      }
-
-      .thumbnail-container {
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-        margin-top: 16px;
-      }
-
       .thumbnail {
         width: 80px;
         height: 60px;
@@ -141,11 +114,68 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
         gap: 8px;
         margin-top: 16px;
       }
+
+      .enlarged-image-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+      }
+
+      .enlarged-image-overlay.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .enlarged-image-overlay.visible ~ * {
+        filter: blur(10px);
+        pointer-events: none;
+      }
+
+      .enlarged-image-container {
+        max-width: 90%;
+        max-height: 90%;
+        transform: scale(0.8);
+        transition: transform 0.3s ease;
+        opacity: 0;
+        z-index: 1001;
+      }
+
+      .enlarged-image-overlay.visible .enlarged-image-container {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      .enlarged-image {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+      }
     `;
     document.head.appendChild(styleEl);
 
+    // Add event listener to close enlarged image on Escape key
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setEnlargedImage(null);
+      }
+    };
+    document.addEventListener('keydown', handleEscapeKey);
+
     return () => {
       document.head.removeChild(styleEl);
+      document.removeEventListener('keydown', handleEscapeKey);
     };
   }, []);
 
@@ -202,6 +232,13 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
           img.style.filter = 'blur(0)';
           img.style.cursor = 'pointer';
         }
+
+        // Add click event to top image for enlargement
+        if (index === 3) {
+          img.addEventListener('click', () => {
+            handleEnlargeImage(img.getAttribute('src') || '');
+          });
+        }
       });
     }
 
@@ -221,11 +258,11 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
 
       currentImages[3].classList.add('evaporate');
 
-      currentImages[0].style.transform = 'translateX(-55px)';
+      currentImages[0].style.transform = 'translateX(55px)';
       currentImages[0].style.opacity = '0.33';
       currentImages[0].style.filter = 'blur(0.5px)';
 
-      currentImages[1].style.transform = 'translateX(-35px)';
+      currentImages[1].style.transform = 'translateX(35px)';
       currentImages[1].style.opacity = '0.66';
       currentImages[1].style.filter = 'blur(0)';
 
@@ -243,11 +280,11 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
         if (targetIndex !== undefined) {
           // Rotate images until the target image is on top
           while (currentImages[3].getAttribute('src') !== images[targetIndex]) {
-            slider.insertBefore(currentImages[3], slider.firstChild);
+            slider.appendChild(currentImages[0]);
             currentImages = Array.from(slider.querySelectorAll('img'));
           }
         } else {
-          slider.insertBefore(currentImages[3], slider.firstChild);
+          slider.appendChild(currentImages[0]);
         }
 
         resetPositions();
@@ -291,7 +328,7 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
     const slider = sliderRef.current;
     if (!slider) return;
 
-    // Pause auto-rotation
+    // Pause any existing auto-rotation
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
@@ -340,12 +377,18 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
 
     resetFunc();
 
-    // Restart auto-rotation after a delay
+    // Restart auto-rotation quickly
     setTimeout(() => {
+      // Clear any existing interval
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+
+      // Start new interval for auto-rotation
       intervalRef.current = window.setInterval(() => {
         moveStack(false);
       }, 4000);
-    }, 5000);
+    }, 2000); // Reduced delay to 2 seconds
   };
 
   // If no images, show placeholder
@@ -374,6 +417,25 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
             onClick={() => handleThumbnailClick(index)}
           />
         ))}
+      </div>
+
+      {/* Enlarged Image Overlay */}
+      <div 
+        className={`enlarged-image-overlay ${enlargedImage ? 'visible' : ''}`}
+        onClick={handleCloseEnlarged}
+      >
+        <div 
+          className="enlarged-image-container"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {enlargedImage && (
+            <img 
+              src={enlargedImage} 
+              alt="Enlarged view" 
+              className="enlarged-image" 
+            />
+          )}
+        </div>
       </div>
     </div>
   );

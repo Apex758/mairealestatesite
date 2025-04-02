@@ -8,7 +8,7 @@ const languages = [
   { code: 'ro', name: 'Română' }
 ] as const;
 
-const currencies = ['AED', 'USD', 'EUR', 'GBP', 'CNY', 'JPY'] as const;
+const currencies = ['AED', 'USD', 'EUR', 'GBP', 'RON', 'NGN', 'BTC', 'USDT'] as const;
 
 export function LanguageCurrencyControls() {
   const { language, setLanguage, currency, setCurrency } = useGlobal();

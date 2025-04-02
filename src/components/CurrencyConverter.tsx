@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bitcoin as BitcoinIcon } from 'lucide-react';
+import { useGlobal } from '../contexts/GlobalContext';
 
 interface CurrencyConverterProps {
   amount: number;
@@ -9,13 +10,18 @@ interface CurrencyConverterProps {
 const currencies = ['AED', 'USD', 'EUR', 'GBP', 'RON', 'NGN', 'BTC', 'USDT'];
 
 export function CurrencyConverter({ amount, baseCurrency = 'AED' }: CurrencyConverterProps) {
-  const [selectedCurrency, setSelectedCurrency] = useState(baseCurrency);
+  const { currency: globalCurrency, setCurrency: setGlobalCurrency } = useGlobal();
   const [convertedAmount, setConvertedAmount] = useState(amount);
   const [rates, setRates] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetchRates(baseCurrency.toLowerCase());
   }, [baseCurrency]);
+
+  // Update converted amount when global currency changes
+  useEffect(() => {
+    updateConvertedAmount(globalCurrency.toLowerCase(), rates);
+  }, [globalCurrency, rates]);
 
   const fetchRates = async (base: string) => {
     try {
@@ -25,7 +31,7 @@ export function CurrencyConverter({ amount, baseCurrency = 'AED' }: CurrencyConv
       
       if (data && data[base]) {
         setRates(data[base]);
-        updateConvertedAmount(selectedCurrency.toLowerCase(), data[base]);
+        updateConvertedAmount(globalCurrency.toLowerCase(), data[base]);
       }
     } catch (error) {
       console.error('Error fetching rates:', error);
@@ -38,7 +44,7 @@ export function CurrencyConverter({ amount, baseCurrency = 'AED' }: CurrencyConv
   };
 
   const handleCurrencyChange = (currency: string) => {
-    setSelectedCurrency(currency);
+    setGlobalCurrency(currency as 'AED' | 'USD' | 'EUR' | 'GBP' | 'RON' | 'NGN' | 'BTC' | 'USDT');
     updateConvertedAmount(currency.toLowerCase(), rates);
   };
 
@@ -79,8 +85,8 @@ export function CurrencyConverter({ amount, baseCurrency = 'AED' }: CurrencyConv
     <div className="font-['Proxima Nova']">
       <div className="text-center">
         <div className="text-2xl font-semibold mb-2 flex items-center justify-center gap-1">
-          <span className="flex items-center">{getCurrencySymbol(selectedCurrency)}</span>
-          <span>{formatAmount(convertedAmount, selectedCurrency)}</span>
+          <span className="flex items-center">{getCurrencySymbol(globalCurrency)}</span>
+          <span>{formatAmount(convertedAmount, globalCurrency)}</span>
         </div>
         <div className="inline-flex flex-wrap justify-center gap-1 bg-gray-100 rounded-full p-1">
           {currencies.map((currency) => (
@@ -88,7 +94,7 @@ export function CurrencyConverter({ amount, baseCurrency = 'AED' }: CurrencyConv
               key={currency}
               onClick={() => handleCurrencyChange(currency)}
               className={`px-2 py-0.5 text-xs rounded-full transition-all flex items-center gap-0.5 ${
-                currency === selectedCurrency
+                currency === globalCurrency
                   ? 'bg-white shadow text-gray-900'
                   : 'text-gray-600 hover:text-gray-900'
               }`}

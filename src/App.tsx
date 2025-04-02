@@ -1,4 +1,5 @@
 import React from 'react';
+import { DarkModeToggle } from './components/DarkModeToggle';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { Navbar } from './components/Navbar';
@@ -19,7 +20,7 @@ function App() {
   return (
     <GlobalProvider>
       <Router>
-        <div className="min-h-screen bg-gray-50 pb-16">
+<div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-16">
           <Navbar />
           <Routes>
             <Route path="/" element={<Home />} />
@@ -35,7 +36,10 @@ function App() {
           <Footer />
           <ScrollControls />
           <Toaster position="top-right" />
-        </div>
+  <div className="fixed bottom-4 left-4 z-50">
+    <DarkModeToggle />
+  </div>
+</div>
       </Router>
     </GlobalProvider>
   );

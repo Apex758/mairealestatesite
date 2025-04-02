@@ -7,47 +7,49 @@ import { Link } from 'react-router-dom';
 import { PropertyCard } from '../components/PropertyCard';
 import { CurrencyConverter } from '../components/CurrencyConverter';
 import { usePropertyStore } from '../stores/propertyStore';
-
-const gridSections = [
-  {
-    type: 'image',
-    image: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&q=80",
-    title: "Luxury Dubai Living",
-    size: "large"
-  },
-  {
-    type: 'text',
-    title: "Crypto Payments",
-    description: "Purchase your dream property using Bitcoin or USDT",
-    size: "small"
-  },
-  {
-    type: 'image',
-    image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&q=80",
-    title: "Dubai Marina",
-    size: "small"
-  },
-  {
-    type: 'text',
-    title: "Prime Locations",
-    description: "Exclusive properties in Dubai's most sought-after neighborhoods",
-    size: "small"
-  },
-  {
-    type: 'image',
-    image: "https://images.unsplash.com/photo-1546412414-e1885259563a?auto=format&fit=crop&q=80",
-    title: "Downtown Views",
-    size: "small"
-  }
-];
-
-const propertyTypes = ['Apartments', 'Condos', 'Houses', 'Homes'];
-const paymentTypes = ['Bitcoin', 'USDT'];
+import { useTranslate } from '../hooks/useTranslate';
 
 export function Home() {
+  const { t } = useTranslate();
+
+  const propertyTypes = [t('apartments'), t('condos'), t('houses'), t('homes')];
+  const paymentTypes = ['Bitcoin', 'USDT'];
   const parallaxRef = useRef<HTMLDivElement | null>(null);
   const [currentPropertyType, setCurrentPropertyType] = useState(0);
   const [currentPaymentType, setCurrentPaymentType] = useState(0);
+  
+  const gridSections = [
+    {
+      type: 'image',
+      image: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&q=80",
+      title: t('luxuryDubaiLiving'),
+      size: "large"
+    },
+    {
+      type: 'text',
+      title: t('cryptoPayments'),
+      description: t('purchaseYourDream'),
+      size: "small"
+    },
+    {
+      type: 'image',
+      image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&q=80",
+      title: t('dubaiMarina'),
+      size: "small"
+    },
+    {
+      type: 'text',
+      title: t('primeLocations'),
+      description: t('exclusiveProperties'),
+      size: "small"
+    },
+    {
+      type: 'image',
+      image: "https://images.unsplash.com/photo-1546412414-e1885259563a?auto=format&fit=crop&q=80",
+      title: t('downtownViews'),
+      size: "small"
+    }
+  ];
   
   // Get properties from the store
   const properties = usePropertyStore(state => 
@@ -97,9 +99,9 @@ export function Home() {
           <div className="absolute inset-0 bg-black/40" />
         </div>
         <div className="relative text-center text-white z-10 max-w-4xl px-4">
-          <h1 className="text-8xl font-bold mb-8">Dubai Real Estate</h1>
+          <h1 className="text-8xl font-bold mb-8">{t('dubaiRealEstate')}</h1>
           <div className="text-3xl mb-12 flex items-center justify-center gap-2">
-            <span>Buy</span>
+            <span>{t('buy')}</span>
             <div className="relative w-40 h-12 inline-block">
               {propertyTypes.map((type, index) => (
                 <span
@@ -115,7 +117,7 @@ export function Home() {
                 </span>
               ))}
             </div>
-            <span>with</span>
+            <span>{t('with')}</span>
             <div className="relative w-32 h-12 inline-block">
               {paymentTypes.map((type, index) => (
                 <span
@@ -138,7 +140,7 @@ export function Home() {
               className="inline-block bg-white/10 backdrop-blur-sm text-white border border-white/20 px-8 py-4 rounded-full 
                        hover:bg-white/20 transition-colors text-lg"
             >
-              Explore Properties
+              {t('exploreProperties')}
             </Link>
             <Link 
               to="/bitcoin"
@@ -146,7 +148,7 @@ export function Home() {
                        hover:from-orange-600 hover:to-yellow-600 transition-colors text-lg"
             >
               <Bitcoin className="w-6 h-6" />
-              Learn How
+              {t('learnHow')}
             </Link>
           </div>
         </div>
@@ -159,7 +161,8 @@ export function Home() {
       </div>
 
       {/* Grid Section */}
-      <div className="bg-white py-24">
+      {/* Adjusted background for dark mode */}
+      <div className="bg-white dark:bg-gray-800 py-24"> 
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 h-[800px]">
             {gridSections.map((section, index) => (
@@ -182,9 +185,10 @@ export function Home() {
                     </div>
                   </>
                 ) : (
-                  <div className="h-full bg-gray-900 p-6 flex flex-col justify-center">
-                    <h3 className="text-2xl font-bold text-white mb-4">{section.title}</h3>
-                    <p className="text-gray-400">{section.description}</p>
+                  // Adjusted text block background and text for dark mode
+                  <div className="h-full bg-gray-100 dark:bg-gray-900 p-6 flex flex-col justify-center"> 
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{section.title}</h3>
+                    <p className="text-gray-600 dark:text-gray-400">{section.description}</p>
                   </div>
                 )}
               </div>
@@ -194,11 +198,12 @@ export function Home() {
       </div>
 
       {/* Featured Properties */}
-      <div className="bg-white py-24">
+      {/* Adjusted background, heading, and border for dark mode */}
+      <div className="bg-white dark:bg-gray-800 py-24"> 
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-4 mb-16">
-            <h2 className="text-4xl font-light">Featured Dubai Properties</h2>
-            <div className="flex-1 border-b border-gray-200" />
+            <h2 className="text-4xl font-light text-gray-900 dark:text-white">{t('featuredDubaiProperties')}</h2> 
+            <div className="flex-1 border-b border-gray-200 dark:border-gray-700" /> 
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -217,31 +222,33 @@ export function Home() {
           </div>
           
           <div className="text-center mt-12">
+            {/* Adjusted button colors for dark mode */}
             <Link 
               to="/listings"
-              className="inline-block px-8 py-4 bg-gray-900 text-white rounded-full hover:bg-gray-800"
+              className="inline-block px-8 py-4 bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-100 rounded-full hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors"
             >
-              View All Properties
+              {t('viewAllProperties')}
             </Link>
           </div>
         </div>
       </div>
 
       {/* Stats Section */}
-      <div className="bg-gray-900 text-white py-24">
+      {/* Adjusted background and text colors for dark mode */}
+      <div className="bg-gray-100 dark:bg-gray-900 py-24"> 
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
             <div>
-              <div className="text-5xl font-bold mb-4">500+</div>
-              <div className="text-xl text-gray-400">Dubai Properties</div>
+              <div className="text-5xl font-bold mb-4 text-gray-900 dark:text-white">500+</div> 
+              <div className="text-xl text-gray-600 dark:text-gray-400">{t('dubaiProperties')}</div> 
             </div>
             <div>
-              <div className="text-5xl font-bold mb-4">$2B+</div>
-              <div className="text-xl text-gray-400">Crypto Transactions</div>
+              <div className="text-5xl font-bold mb-4 text-gray-900 dark:text-white">$2B+</div> 
+              <div className="text-xl text-gray-600 dark:text-gray-400">{t('cryptoTransactions')}</div> 
             </div>
             <div>
-              <div className="text-5xl font-bold mb-4">100%</div>
-              <div className="text-xl text-gray-400">Secure Escrow</div>
+              <div className="text-5xl font-bold mb-4 text-gray-900 dark:text-white">100%</div> 
+              <div className="text-xl text-gray-600 dark:text-gray-400">{t('secureEscrow')}</div> 
             </div>
           </div>
         </div>

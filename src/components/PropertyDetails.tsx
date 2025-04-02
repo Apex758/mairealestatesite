@@ -1,7 +1,29 @@
 import React, { useState, useEffect } from 'react';
+import { Dialog } from '@headlessui/react';
 import { PropertyCard } from './PropertyCard';
 import { GoogleMap } from './GoogleMap';
-import { Store, Utensils, Building2, School, Train, Sparkle as Park, X, MapPin } from 'lucide-react';
+import { Store, Utensils, Building2, School, Train, Sparkle as Park, MapPin } from 'lucide-react';
+import { useTranslate } from '../hooks/useTranslate';
+import { TranslationKey } from '../translations';
+import { useGlobal } from '../contexts/GlobalContext';
+import { translateText } from '../utils/translateUtils';
+
+// Feature list item component for consistent rendering
+function FeatureListItem({ feature, isTranslating, t }: { feature: string; isTranslating: boolean; t: (key: TranslationKey) => string }) {
+  return (
+    // Added dark mode text color
+    <li className="flex items-center text-gray-600 dark:text-gray-400"> 
+      {isTranslating ? (
+        <span className="italic text-gray-400">{t('translating')}...</span>
+      ) : (
+        <>
+          <span className="w-2 h-2 bg-blue-600 rounded-full mr-3" />
+          {feature}
+        </>
+      )}
+    </li>
+  );
+}
 
 interface PropertyDetailsProps {
   details: {
@@ -42,6 +64,7 @@ interface PropertyDetailsProps {
     size: number;
     price: number;
     image: string;
+    formattedPrice?: string;
   }>;
 }
 
@@ -56,14 +79,24 @@ const placeTypeIcons: Record<string, React.ReactNode> = {
   default: <Building2 className="w-4 h-4" />
 };
 
-// Define place type labels
-const placeTypeLabels: Record<string, string> = {
-  cafe: 'Cafes',
-  restaurant: 'Restaurants',
-  supermarket: 'Supermarkets',
-  school: 'Schools',
-  transit_station: 'Transit',
-  park: 'Parks',
+// Map place types to translation keys
+const placeTypeToTranslationKey: Record<string, TranslationKey> = {
+  cafe: 'cafes',
+  restaurant: 'restaurants',
+  supermarket: 'supermarkets',
+  school: 'schools',
+  transit_station: 'transit',
+  park: 'parks',
+};
+
+// Map place types to description translation keys
+const placeTypeToDescriptionKey: Record<string, TranslationKey> = {
+  cafe: 'cafeDescription',
+  restaurant: 'restaurantDescription',
+  supermarket: 'supermarketDescription',
+  school: 'schoolDescription',
+  transit_station: 'transitDescription',
+  default: 'defaultPlaceDescription',
 };
 
 export function PropertyDetails({
@@ -73,11 +106,59 @@ export function PropertyDetails({
   location,
   similarProperties
 }: PropertyDetailsProps) {
+  const { t } = useTranslate();
+  const { language } = useGlobal();
+  const [translatedFeatures, setTranslatedFeatures] = useState(features);
+  const [isTranslating, setIsTranslating] = useState(false);
+
+  // Translate features when language changes
+  useEffect(() => {
+    const translateFeatures = async () => {
+      if (language === 'en') {
+        setTranslatedFeatures(features);
+        return;
+      }
+
+      setIsTranslating(true);
+      try {
+        const translated = {
+          residences: await Promise.all(features.residences.map(feature => 
+            translateText(feature, language)
+          )),
+          luxuryWellness: await Promise.all(features.luxuryWellness.map(feature => 
+            translateText(feature, language)
+          )),
+          retailDining: await Promise.all(features.retailDining.map(feature => 
+            translateText(feature, language)
+          ))
+        };
+        setTranslatedFeatures(translated);
+      } catch (error) {
+        console.error('Error translating features:', error);
+        setTranslatedFeatures(features);
+      } finally {
+        setIsTranslating(false);
+      }
+    };
+
+    translateFeatures();
+  }, [features, language]);
   const [selectedPlaceType, setSelectedPlaceType] = useState<string | null>(null);
   const [selectedPredefinedPlace, setSelectedPredefinedPlace] = useState<number | null>(null);
-  const [selectedNearbyPlace, setSelectedNearbyPlace] = useState<any | null>(null);
-  const [placeCache, setPlaceCache] = useState<Record<string, any[]>>({});
-  const [nearbyPlaces, setNearbyPlaces] = useState<any[]>([]);
+  // Define a type for place objects
+  interface Place {
+    id: string;
+    name: string;
+    vicinity: string;
+    distance: string;
+    duration: string;
+    stableIndex?: number;
+  }
+  
+  const [selectedNearbyPlace, setSelectedNearbyPlace] = useState<Place | null>(null);
+  const [placeCache, setPlaceCache] = useState<Record<string, Place[]>>({});
+const [nearbyPlaces, setNearbyPlaces] = useState<Place[]>([]);
+const [isBrochureOpen, setIsBrochureOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState({
     lat: location?.lat || 0,
     lng: location?.lng || 0
@@ -90,10 +171,6 @@ export function PropertyDetails({
   const readOnly = false;
 
   const distances = location?.distances || [];
-  const placeTypes = Array.from(new Set(distances.map(d => d.type || 'default')));
-  const filteredPlaces = selectedPlaceType 
-    ? distances.filter(d => (d.type || 'default') === selectedPlaceType)
-    : distances;
 
   // When selectedPlaceType changes, we need to trigger a refresh
   useEffect(() => {
@@ -109,7 +186,7 @@ export function PropertyDetails({
   useEffect(() => {
     // This ensures that once places are loaded, they won't reorder
     // Only a new place type selection will clear the list
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    const handleBeforeUnload = () => {
       // This is just to detect page refreshes
       console.log("Page will refresh");
     };
@@ -138,7 +215,7 @@ export function PropertyDetails({
   };
 
   // Handler for when nearby places are found by the GoogleMap component
-  const handleNearbyPlacesFound = (places: any[]) => {
+  const handleNearbyPlacesFound = (places: Place[]) => {
     console.log(`PropertyDetails received ${places.length} nearby places`);
     
     // Cache the places by their type
@@ -154,49 +231,84 @@ export function PropertyDetails({
 
   return (
     <div>
-      {/* Property Details Section */}
+{/* Brochure Popup */}
+{/* Added backdrop blur */}
+<Dialog open={isBrochureOpen} onClose={() => setIsBrochureOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"> 
+  {/* Added dark mode background and text */}
+  <Dialog.Panel className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-3xl w-full"> 
+    <Dialog.Title className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Brochure Images</Dialog.Title> 
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 overflow-y-auto max-h-96">
+      {features.residences.map((img, index) => (
+        <img key={index} src={img} alt={`Brochure ${index}`} className="rounded-lg shadow-sm object-cover" />
+      ))}
+    </div>
+    {/* Added dark mode button styles */}
+    <button
+      onClick={() => setIsBrochureOpen(false)}
+      className="mt-4 px-4 py-2 bg-gray-800 dark:bg-gray-600 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-500" 
+    >
+      Close
+    </button>
+  </Dialog.Panel>
+</Dialog>
+
+{/* Property Details Section */}
       <div className="mb-16">
         <div className="flex items-center justify-end gap-4 mb-8">
-          <div className="flex-1 border-b border-gray-200" />
-          <h2 className="text-2xl font-light">Property Details</h2>
+          {/* Added dark mode border and text */}
+          <div className="flex-1 border-b border-gray-200 dark:border-gray-700" /> 
+          <h2 className="text-2xl font-light text-gray-900 dark:text-white">{t('propertyDetails')}</h2> 
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-            <h3 className="text-lg font-semibold mb-4">Details</h3>
+<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Added dark mode background and text */}
+          <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-sm"> 
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">{t('details')}</h3> 
             <div className="space-y-3">
               <div>
-                <p className="text-gray-600">Size Range</p>
-                <p className="font-medium">
+                <p className="text-gray-600 dark:text-gray-400">{t('sizeRange')}</p> 
+                <p className="font-medium text-gray-900 dark:text-white"> 
                   {details.size.min} - {details.size.max} {details.size.unit}
                 </p>
               </div>
               <div>
-                <p className="text-gray-600">Bedrooms</p>
-                <p className="font-medium">{details.bedrooms}</p>
+                <p className="text-gray-600 dark:text-gray-400">{t('bedrooms')}</p> 
+                <p className="font-medium text-gray-900 dark:text-white">{details.bedrooms}</p> 
               </div>
               <div>
-                <p className="text-gray-600">Bathrooms</p>
-                <p className="font-medium">{details.bathrooms}</p>
+                <p className="text-gray-600 dark:text-gray-400">{t('bathrooms')}</p> 
+                <p className="font-medium text-gray-900 dark:text-white">{details.bathrooms}</p> 
               </div>
               <div>
-                <p className="text-gray-600">Handover</p>
-                <p className="font-medium">{details.handover}</p>
+                <p className="text-gray-600 dark:text-gray-400">{t('handover')}</p> 
+                <p className="font-medium text-gray-900 dark:text-white">{details.handover}</p> 
               </div>
             </div>
           </div>
-          <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-            <h3 className="text-lg font-semibold mb-4">Payment Plan</h3>
-            <div className="space-y-3">
-              <div>
-                <p className="text-gray-600">Down Payment</p>
-                <p className="font-medium">{payment.downPayment}%</p>
-              </div>
-              <div>
-                <p className="text-gray-600">During Construction</p>
-                <p className="font-medium">{payment.duringConstruction}%</p>
-              </div>
-            </div>
-          </div>
+          {/* Added dark mode background and text */}
+<div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-sm"> 
+  <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">{t('paymentPlan')}</h3> 
+  <div className="space-y-3">
+    <div>
+      <p className="text-gray-600 dark:text-gray-400">{t('downPayment')}</p> 
+      <p className="font-medium text-gray-900 dark:text-white">{payment.downPayment}%</p> 
+    </div>
+    <div>
+      <p className="text-gray-600 dark:text-gray-400">{t('duringConstruction')}</p> 
+      <p className="font-medium text-gray-900 dark:text-white">{payment.duringConstruction}%</p> 
+    </div>
+  </div>
+</div>
+
+<div className="flex items-center justify-center [perspective:1000px]"> {/* Added perspective for 3D effect */}
+  {/* Added dark mode background and text */}
+  <button
+    onClick={() => setIsBrochureOpen(true)}
+    className="flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-700 shadow-xl rounded-lg transition-transform duration-300 [transform:rotateY(-25deg)] hover:[transform:rotateY(0deg)] [transform-style:preserve-3d]" // Changed rotation to -25deg (left), increased padding
+  >
+    <span className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Brochure</span> {/* Increased font size and margin */}
+    <img src="/brochure-placeholder.png" alt="Brochure" className="w-80 h-60 object-cover shadow-lg" /> {/* Increased image size */}
+  </button>
+</div>
         </div>
       </div>
 
@@ -204,45 +316,55 @@ export function PropertyDetails({
       {(features.residences.length > 0 || features.luxuryWellness.length > 0 || features.retailDining.length > 0) && (
         <div className="mb-16">
           <div className="flex items-center justify-end gap-4 mb-8">
-            <div className="flex-1 border-b border-gray-200" />
-            <h2 className="text-2xl font-light">Features & Amenities</h2>
+            {/* Added dark mode border and text */}
+            <div className="flex-1 border-b border-gray-200 dark:border-gray-700" /> 
+            <h2 className="text-2xl font-light text-gray-900 dark:text-white">{t('features')}</h2> 
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {features.residences.length > 0 && (
+            {translatedFeatures.residences.length > 0 && (
               <div>
-                <h3 className="text-xl font-semibold mb-4">Residences</h3>
+                {/* Added dark mode text */}
+                <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t('residences')}</h3> 
                 <ul className="space-y-2">
-                  {features.residences.map((feature, index) => (
-                    <li key={index} className="flex items-center text-gray-600">
-                      <span className="w-2 h-2 bg-blue-600 rounded-full mr-3" />
-                      {feature}
-                    </li>
+                  {translatedFeatures.residences.map((feature, index) => (
+                    <FeatureListItem
+                      key={index}
+                      feature={feature}
+                      isTranslating={isTranslating}
+                      t={t}
+                    />
                   ))}
                 </ul>
               </div>
             )}
-            {features.luxuryWellness.length > 0 && (
+            {translatedFeatures.luxuryWellness.length > 0 && (
               <div>
-                <h3 className="text-xl font-semibold mb-4">Luxury & Wellness</h3>
+                {/* Added dark mode text */}
+                <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t('luxuryWellness')}</h3> 
                 <ul className="space-y-2">
-                  {features.luxuryWellness.map((feature, index) => (
-                    <li key={index} className="flex items-center text-gray-600">
-                      <span className="w-2 h-2 bg-blue-600 rounded-full mr-3" />
-                      {feature}
-                    </li>
+                  {translatedFeatures.luxuryWellness.map((feature, index) => (
+                    <FeatureListItem
+                      key={index}
+                      feature={feature}
+                      isTranslating={isTranslating}
+                      t={t}
+                    />
                   ))}
                 </ul>
               </div>
             )}
-            {features.retailDining.length > 0 && (
+            {translatedFeatures.retailDining.length > 0 && (
               <div className="md:col-span-2">
-                <h3 className="text-xl font-semibold mb-4">Retail & Dining</h3>
+                {/* Added dark mode text */}
+                <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t('retailDining')}</h3> 
                 <ul className="space-y-2">
-                  {features.retailDining.map((feature, index) => (
-                    <li key={index} className="flex items-center text-gray-600">
-                      <span className="w-2 h-2 bg-blue-600 rounded-full mr-3" />
-                      {feature}
-                    </li>
+                  {translatedFeatures.retailDining.map((feature, index) => (
+                    <FeatureListItem
+                      key={index}
+                      feature={feature}
+                      isTranslating={isTranslating}
+                      t={t}
+                    />
                   ))}
                 </ul>
               </div>
@@ -254,8 +376,9 @@ export function PropertyDetails({
       {/* Location Section */}
       <div className="mb-16">
         <div className="flex items-center justify-end gap-4 mb-8">
-          <div className="flex-1 border-b border-gray-200" />
-          <h2 className="text-2xl font-light">Location</h2>
+          {/* Added dark mode border and text */}
+          <div className="flex-1 border-b border-gray-200 dark:border-gray-700" /> 
+          <h2 className="text-2xl font-light text-gray-900 dark:text-white">{t('location')}</h2> 
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
@@ -285,18 +408,19 @@ export function PropertyDetails({
             <div className="flex flex-wrap gap-2 mb-4">
               {/* "All Places" button removed */}
               
-              {Object.entries(placeTypeLabels).map(([type, label]) => (
+              {Object.entries(placeTypeToTranslationKey).map(([type, translationKey]) => (
                 <button
                   key={type}
                   onClick={() => handlePlaceTypeChange(type)}
+                  // Added dark mode styles for filter buttons
                   className={`flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg transition-all ${
                     selectedPlaceType === type 
-                      ? 'bg-gray-900 text-white shadow-sm' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-gray-900 dark:bg-blue-600 text-white shadow-sm' 
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                   }`}
                 >
                   {placeTypeIcons[type] || placeTypeIcons.default}
-                  <span>{label}</span>
+                  <span>{t(translationKey)}</span>
                 </button>
               ))}
             </div>
@@ -304,21 +428,17 @@ export function PropertyDetails({
             {/* Display nearby places list */}
             {selectedPlaceType && (
               <div className="mt-6">
-                <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                {/* Added dark mode text */}
+                <h3 className="text-lg font-medium mb-3 flex items-center gap-2 text-gray-900 dark:text-white"> 
                   {placeTypeIcons[selectedPlaceType] || placeTypeIcons.default}
-                  <span>Nearby {placeTypeLabels[selectedPlaceType]}</span> 
+                  <span>{t('nearby').replace('{0}', t(placeTypeToTranslationKey[selectedPlaceType]))}</span> 
                 </h3>
                 
                 {/* Description of the place type */}
-                <div className="mb-4 p-4 bg-blue-50 rounded-lg shadow-sm">
-                  <p className="text-sm text-gray-600">
-                    {selectedPlaceType === 'cafe' && "Enjoy a relaxing cup of coffee or tea at these nearby cafes within easy reach of the property."}
-                    {selectedPlaceType === 'restaurant' && "Discover nearby dining options for everything from quick meals to fine dining experiences."}
-                    {selectedPlaceType === 'supermarket' && "Conveniently shop for groceries and essentials at these nearby supermarkets."}
-                    {selectedPlaceType === 'school' && "Educational institutions including schools, colleges and universities in the vicinity."}
-                    {selectedPlaceType === 'transit_station' && "Easily access public transportation options from these nearby transit stations."}
-                    {!['cafe', 'restaurant', 'supermarket', 'school', 'transit_station'].includes(selectedPlaceType) && 
-                      "Points of interest located near the property."}
+                {/* Added dark mode background and text */}
+                <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg shadow-sm"> 
+                  <p className="text-sm text-gray-600 dark:text-blue-200"> 
+                    {t(placeTypeToDescriptionKey[selectedPlaceType] || placeTypeToDescriptionKey.default)}
                   </p>
                 </div>
                 
@@ -326,14 +446,15 @@ export function PropertyDetails({
                   <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
                     {/* Use stableIndex as key to prevent reordering */}
                     {nearbyPlaces.map((place) => (
+                      // Added dark mode styles for place items
                       <div 
                         key={`place-${place.stableIndex || place.id}`}
-                        className="p-4 bg-white border border-gray-100 rounded-lg hover:bg-gray-50 cursor-pointer transition-all shadow-sm"
+                        className="p-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-all shadow-sm" 
                         onClick={() => setSelectedNearbyPlace(place)}
                       >
-                        <div className="font-medium text-gray-900">{place.name}</div>
-                        <div className="text-sm text-gray-600 mt-1">{place.vicinity}</div>
-                        <div className="text-sm text-gray-500 mt-2 flex items-center">
+                        <div className="font-medium text-gray-900 dark:text-white">{place.name}</div> 
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{place.vicinity}</div> 
+                        <div className="text-sm text-gray-500 dark:text-gray-400 mt-2 flex items-center"> 
                           <MapPin className="w-3.5 h-3.5 mr-1" />
                           {place.distance} • {place.duration}
                         </div>
@@ -341,14 +462,16 @@ export function PropertyDetails({
                     ))}
                   </div>
                 ) : (
-                  <div className="p-5 bg-white border border-gray-100 rounded-lg text-gray-500 text-center shadow-sm">
-                    <MapPin className="w-6 h-6 mx-auto mb-2 text-gray-400" />
-                    <p>No {placeTypeLabels[selectedPlaceType]} found nearby.</p>
+                  // Added dark mode styles for "no places found"
+                  <div className="p-5 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-gray-500 dark:text-gray-400 text-center shadow-sm"> 
+                    <MapPin className="w-6 h-6 mx-auto mb-2 text-gray-400 dark:text-gray-500" /> 
+                    <p>{t('noPlacesFound').replace('{0}', t(placeTypeToTranslationKey[selectedPlaceType]))}</p>
+                    {/* Added dark mode link color */}
                     <button 
                       onClick={() => setSelectedPlaceType(null)}
-                      className="mt-3 text-blue-600 text-sm hover:underline"
+                      className="mt-3 text-blue-600 dark:text-blue-400 text-sm hover:underline" 
                     >
-                      Try another category
+                      {t('tryAnotherCategory')}
                     </button>
                   </div>
                 )}
@@ -362,8 +485,9 @@ export function PropertyDetails({
       {similarProperties.length > 0 && (
         <div className="mb-16">
           <div className="flex items-center justify-end gap-4 mb-8">
-            <div className="flex-1 border-b border-gray-200" />
-            <h2 className="text-2xl font-light">Similar Properties</h2>
+            {/* Added dark mode border and text */}
+            <div className="flex-1 border-b border-gray-200 dark:border-gray-700" /> 
+            <h2 className="text-2xl font-light text-gray-900 dark:text-white">{t('similarProperties')}</h2> 
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {similarProperties.map((property) => (
@@ -371,7 +495,7 @@ export function PropertyDetails({
                 key={property.id}
                 id={property.id}
                 image={property.image}
-                price={`$${new Intl.NumberFormat().format(property.price)}`}
+                price={property.formattedPrice || `$${new Intl.NumberFormat().format(property.price)}`}
                 address={property.name}
                 beds={property.bedrooms}
                 baths={property.bathrooms}

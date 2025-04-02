@@ -23,6 +23,8 @@ export interface PropertyDistance {
 }
 
 export interface Property {
+  imageTags?: Record<string, string[]>;
+slideshowImages?: string[];
   id: string;
   name: string;
   image: string;

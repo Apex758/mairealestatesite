@@ -7,7 +7,10 @@ import { ChevronUp, ChevronDown } from 'lucide-react';
 import { PropertyDetails } from '../components/PropertyDetails';
 import { StackedImageSlider } from '../components/StackedImageSlider';
 import { CurrencyConverter } from '../components/CurrencyConverter';
-import { usePropertyStore, Property } from '../stores/propertyStore';
+import { usePropertyStore, Property, formatPrice } from '../stores/propertyStore';
+import { useGlobal } from '../contexts/GlobalContext';
+import { useTranslate } from '../hooks/useTranslate';
+import { translateText } from '../utils/translateUtils';
 
 interface PropertyPageProps {
   previewData?: Property; // For preview mode
@@ -17,8 +20,12 @@ export function PropertyPage({ previewData }: PropertyPageProps) {
   const { id } = useParams();
   const navigate = useNavigate();
   const properties = usePropertyStore((state) => state.properties);
+  const { currency, language } = useGlobal();
+  const { t } = useTranslate();
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(false);
+  const [translatedDescription, setTranslatedDescription] = useState<string>('');
+  const [isTranslating, setIsTranslating] = useState(false);
   const descriptionRef = useRef<HTMLDivElement>(null);
   const slideshowRef = useRef<HTMLDivElement>(null);
 
@@ -31,6 +38,30 @@ export function PropertyPage({ previewData }: PropertyPageProps) {
       navigate('/');
     }
   }, [property, navigate, previewData]);
+  
+  // Translate description when language changes
+  useEffect(() => {
+    const translateDescription = async () => {
+      if (property?.description && language !== 'en') {
+        setIsTranslating(true);
+        try {
+          const translated = await translateText(property.description, language);
+          setTranslatedDescription(translated);
+        } catch (error) {
+          console.error('Error translating description:', error);
+          // Use original description if translation fails
+          setTranslatedDescription(property.description);
+        } finally {
+          setIsTranslating(false);
+        }
+      } else if (property?.description) {
+        // Use original description for English
+        setTranslatedDescription(property.description);
+      }
+    };
+    
+    translateDescription();
+  }, [property?.description, language]);
 
   useEffect(() => {
     if (descriptionRef.current && slideshowRef.current) {
@@ -57,7 +88,8 @@ export function PropertyPage({ previewData }: PropertyPageProps) {
       bathrooms: p.baths,
       size: p.sqft,
       price: p.price,
-      image: p.image
+      image: p.image,
+      formattedPrice: formatPrice(p.price, currency) // Format price using global currency
     }));
 
   return (
@@ -86,7 +118,11 @@ export function PropertyPage({ previewData }: PropertyPageProps) {
                       !isDescriptionExpanded && isDescriptionOverflowing ? 'max-h-[calc(100vh-200px)] overflow-hidden' : ''
                     }`}
                   >
-                    <p className="text-gray-600 leading-relaxed">{property.description}</p>
+                    <p className="text-gray-600 leading-relaxed">
+                      {isTranslating ? (
+                        <span className="italic text-gray-400">{t('translating')}...</span>
+                      ) : translatedDescription || property.description}
+                    </p>
                   </div>
                   
                   {/* Only show fade and button if content is overflowing */}
@@ -100,9 +136,9 @@ export function PropertyPage({ previewData }: PropertyPageProps) {
                         className="mt-2 flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900"
                       >
                         {isDescriptionExpanded ? (
-                          <>Show Less <ChevronUp className="w-4 h-4" /></>
+                          <>{t('showLess')} <ChevronUp className="w-4 h-4" /></>
                         ) : (
-                          <>Read More <ChevronDown className="w-4 h-4" /></>
+                          <>{t('readMore')} <ChevronDown className="w-4 h-4" /></>
                         )}
                       </button>
                     </>

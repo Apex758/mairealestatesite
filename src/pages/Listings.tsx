@@ -3,13 +3,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { PropertyCard } from '../components/PropertyCard';
-import { usePropertyStore, formatPrice } from '../stores/propertyStore';
+import { usePropertyStore } from '../stores/propertyStore'; // Removed unused formatPrice
 import { CurrencyConverter } from '../components/CurrencyConverter';
+import { useTranslate } from '../hooks/useTranslate';
 
 const locations = ['Dubai Marina', 'Downtown Dubai', 'Business Bay', 'Palm Jumeirah'];
 const propertyTypes = ['Apartment', 'Penthouse', 'Villa', 'Townhouse'];
 
 export function Listings() {
+  const { t } = useTranslate();
   const properties = usePropertyStore(state => state.properties);
   const [filteredProperties, setFilteredProperties] = useState(properties);
   const [filters, setFilters] = useState({
@@ -65,7 +67,8 @@ export function Listings() {
   }, [properties, filters]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    // Added dark mode background
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900"> 
       {/* Hero Section */}
       <div className="relative h-[60vh] flex items-center justify-center overflow-hidden">
         <img
@@ -76,23 +79,26 @@ export function Listings() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-black/20" />
         
         <div className="relative z-10 max-w-7xl mx-auto px-4 w-full">
-          <h1 className="text-4xl font-light text-white mb-8">Available Properties</h1>
+          <h1 className="text-4xl font-light text-white mb-8">{t('availableProperties')}</h1>
 
           {/* Filters Panel - Always visible */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          {/* Added dark mode background */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden"> 
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Location */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Location
+                  {/* Added dark mode text color */}
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"> 
+                    {t('location')}
                   </label>
+                  {/* Added dark mode styles for select */}
                   <select 
-                    className="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
                     value={filters.location}
                     onChange={(e) => setFilters({ ...filters, location: e.target.value })}
                   >
-                    <option value="">Any Location</option>
+                    <option value="">{t('anyLocation')}</option>
                     {locations.map(location => (
                       <option key={location} value={location}>{location}</option>
                     ))}
@@ -101,15 +107,17 @@ export function Listings() {
 
                 {/* Property Type */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Property Type
+                  {/* Added dark mode text color */}
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"> 
+                    {t('propertyType')}
                   </label>
+                  {/* Added dark mode styles for select */}
                   <select 
-                    className="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
                     value={filters.propertyType}
                     onChange={(e) => setFilters({ ...filters, propertyType: e.target.value })}
                   >
-                    <option value="">Any Type</option>
+                    <option value="">{t('anyType')}</option>
                     {propertyTypes.map(type => (
                       <option key={type} value={type}>{type}</option>
                     ))}
@@ -119,30 +127,34 @@ export function Listings() {
                 {/* Bedrooms */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Min Beds
+                    {/* Added dark mode text color */}
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"> 
+                      {t('minBeds')}
                     </label>
+                    {/* Added dark mode styles for select */}
                     <select 
-                      className="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
                       value={filters.minBeds}
                       onChange={(e) => setFilters({ ...filters, minBeds: e.target.value })}
                     >
-                      <option value="">Any</option>
+                      <option value="">{t('anyType')}</option>
                       {[1,2,3,4,5,6].map(num => (
                         <option key={num} value={num}>{num}+</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Max Beds
+                    {/* Added dark mode text color */}
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"> 
+                      {t('maxBeds')}
                     </label>
+                    {/* Added dark mode styles for select */}
                     <select 
-                      className="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
                       value={filters.maxBeds}
                       onChange={(e) => setFilters({ ...filters, maxBeds: e.target.value })}
                     >
-                      <option value="">Any</option>
+                      <option value="">{t('anyType')}</option>
                       {[1,2,3,4,5,6].map(num => (
                         <option key={num} value={num}>{num}</option>
                       ))}
@@ -153,30 +165,34 @@ export function Listings() {
                 {/* Price Range */}
                 <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Min Price
+                    {/* Added dark mode text color */}
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"> 
+                      {t('minPrice')}
                     </label>
+                    {/* Added dark mode styles for select */}
                     <select 
-                      className="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
                       value={filters.minPrice}
                       onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
                     >
-                      <option value="">No Min</option>
+                      <option value="">{t('noMin')}</option>
                       {['500,000', '750,000', '1,000,000', '1,500,000', '2,000,000'].map(price => (
                         <option key={price} value={price}>${price}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Max Price
+                    {/* Added dark mode text color */}
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"> 
+                      {t('maxPrice')}
                     </label>
+                    {/* Added dark mode styles for select */}
                     <select 
-                      className="w-full border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
                       value={filters.maxPrice}
                       onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
                     >
-                      <option value="">No Max</option>
+                      <option value="">{t('noMax')}</option>
                       {['1,000,000', '1,500,000', '2,000,000', '3,000,000', '5,000,000'].map(price => (
                         <option key={price} value={price}>${price}</option>
                       ))}
@@ -208,7 +224,9 @@ export function Listings() {
           </div>
         ) : (
           <div className="text-center py-16">
-            <h3 className="text-2xl font-light text-gray-500">No properties match your search criteria</h3>
+            {/* Added dark mode text color */}
+            <h3 className="text-2xl font-light text-gray-500 dark:text-gray-400">{t('noPropertiesMatch')}</h3> 
+            {/* Added dark mode button styles */}
             <button 
               onClick={() => setFilters({
                 location: '',
@@ -218,9 +236,9 @@ export function Listings() {
                 minPrice: '',
                 maxPrice: '',
               })}
-              className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+              className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600" 
             >
-              Clear Filters
+              {t('clearFilters')}
             </button>
           </div>
         )}

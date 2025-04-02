@@ -117,10 +117,10 @@ const DEFAULT_HOSTING: HostingConfig = {
 
 export function PageManager() {
   const [activeProperty, setActiveProperty] = useState<string | null>(null);
-  const [editingMode, setEditingMode] = useState<'details' | 'slideshow' | 'location' | 'amenities' | 'hosting' | 'content'>('details');
+const [editingMode, setEditingMode] = useState<'details' | 'slideshow' | 'location' | 'amenities' | 'hosting' | 'content' | 'brochure'>('details');
   const [hostingConfig, setHostingConfig] = useState<HostingConfig>(DEFAULT_HOSTING);
   const [selectedCategory, setSelectedCategory] = useState<keyof typeof amenityCategories>('residences');
-  const [showPreview, setShowPreview] = useState(false);
+const [showPreview, setShowPreview] = useState(false);
   
   // Access property store
   const { 
@@ -308,15 +308,15 @@ export function PageManager() {
               <Home className="w-4 h-4" />
               Property Details
             </button>
-            <button
-              onClick={() => setEditingMode('slideshow')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                editingMode === 'slideshow' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <Image className="w-4 h-4" />
-              Images
-            </button>
+<button
+  onClick={() => setEditingMode('slideshow')}
+  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+    editingMode === 'slideshow' ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'
+  }`}
+>
+  <Image className="w-4 h-4" />
+  Images
+</button>
             <button
               onClick={() => setEditingMode('location')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
@@ -525,7 +525,67 @@ export function PageManager() {
                   </div>
                 )}
 
-                {editingMode === 'slideshow' && (
+{editingMode === 'slideshow' && currentProperty && (
+  <div className="space-y-8">
+<h3 className="text-lg font-semibold mb-4">Property Images & Brochure</h3>
+<div className="max-h-96 overflow-y-auto border rounded-lg p-4">
+  {currentProperty.images.map((img, index) => (
+    <div key={index} className="flex items-center gap-4 mb-4">
+      <img src={img} alt={`Preview ${index}`} className="w-20 h-20 object-cover rounded-lg border" />
+      <input
+        type="text"
+        value={currentProperty.imageTags?.[img]?.join(', ') || ''}
+        onChange={(e) => {
+          const tags = e.target.value.split(',').map(tag => tag.trim());
+          handlePropertyUpdate({
+            imageTags: {
+              ...currentProperty.imageTags,
+              [img]: tags
+            }
+          });
+        }}
+        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+        placeholder="Enter tags separated by commas"
+      />
+      <input
+        type="checkbox"
+        checked={currentProperty.slideshowImages?.includes(img) || false}
+        onChange={(e) => {
+          const slideshowImages = currentProperty.slideshowImages || [];
+          const updatedSlideshowImages = e.target.checked
+            ? [...slideshowImages, img]
+            : slideshowImages.filter(i => i !== img);
+          handlePropertyUpdate({ slideshowImages: updatedSlideshowImages });
+        }}
+        className="w-5 h-5"
+      />
+      <span className="text-sm">Include in Slideshow</span>
+    </div>
+  ))}
+</div>
+<SortableImageGrid
+  images={currentProperty.slideshowImages || []}
+onImagesChange={(images) => {
+  handlePropertyUpdate({ slideshowImages: images });
+        handlePropertyUpdate({ 
+          images,
+          image: images.length > 0 ? images[0] : ''
+        });
+      }}
+      onImageUpload={(files) => {
+        const newImages = Array.from(files).map(file => URL.createObjectURL(file));
+        const updatedImages = [...currentProperty.images, ...newImages];
+        handlePropertyUpdate({
+          images: updatedImages,
+          image: currentProperty.image || (updatedImages.length > 0 ? updatedImages[0] : '')
+        });
+        toast.success('Images uploaded successfully');
+      }}
+    />
+  </div>
+)}
+
+{false && (
                   <div className="space-y-8">
                     <div>
                       <h3 className="text-lg font-semibold mb-4">Property Images</h3>
@@ -707,7 +767,45 @@ export function PageManager() {
                   </div>
                 )}
 
-                {editingMode === 'amenities' && (
+{editingMode === 'brochure' && (
+  <div className="space-y-8">
+    <h3 className="text-lg font-semibold mb-4">Brochure Images</h3>
+    <SortableImageGrid
+      images={brochureImages.map(img => img.url)}
+      onImagesChange={(images) => {
+        setBrochureImages(images.map((url, index) => ({
+          url,
+          tags: brochureImages[index]?.tags || []
+        })));
+      }}
+      onImageUpload={(files) => {
+        const newImages = Array.from(files).map(file => ({
+          url: URL.createObjectURL(file),
+          tags: []
+        }));
+        setBrochureImages([...brochureImages, ...newImages]);
+        toast.success('Brochure images uploaded successfully');
+      }}
+    />
+    {brochureImages.map((img, index) => (
+      <div key={index} className="mt-4">
+        <input
+          type="text"
+          value={img.tags.join(', ')}
+          onChange={(e) => {
+            const updatedImages = [...brochureImages];
+            updatedImages[index].tags = e.target.value.split(',').map(tag => tag.trim());
+            setBrochureImages(updatedImages);
+          }}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+          placeholder="Enter tags separated by commas"
+        />
+      </div>
+    ))}
+  </div>
+)}
+
+{editingMode === 'amenities' && (
                   <div className="space-y-8">
                     <div>
                       <h3 className="text-lg font-semibold mb-4">Property Amenities</h3>
