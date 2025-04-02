@@ -53,31 +53,31 @@ export function Home() {
     {
       type: 'image',
       image: homepageSettings.gridImages.large,
-      title: t(homepageSettings.textContent.luxuryDubaiLiving as TranslationKey),
+      title: homepageSettings.textContent.luxuryDubaiLiving,
       size: "large"
     },
     {
       type: 'text',
-      title: t(homepageSettings.textContent.cryptoPayments as TranslationKey),
-      description: t(homepageSettings.textContent.purchaseYourDream as TranslationKey),
+      title: homepageSettings.textContent.cryptoPayments,
+      description: homepageSettings.textContent.purchaseYourDream,
       size: "small"
     },
     {
       type: 'image',
       image: homepageSettings.gridImages.small1,
-      title: t(homepageSettings.textContent.dubaiMarina as TranslationKey),
+      title: homepageSettings.textContent.dubaiMarina,
       size: "small"
     },
     {
       type: 'text',
-      title: t(homepageSettings.textContent.primeLocations as TranslationKey),
-      description: t(homepageSettings.textContent.exclusiveProperties as TranslationKey),
+      title: homepageSettings.textContent.primeLocations,
+      description: homepageSettings.textContent.exclusiveProperties,
       size: "small"
     },
     {
       type: 'image',
       image: homepageSettings.gridImages.small2,
-      title: t(homepageSettings.textContent.downtownViews as TranslationKey),
+      title: homepageSettings.textContent.downtownViews,
       size: "small"
     }
   ];

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { 
   Plus,
@@ -21,6 +21,7 @@ import { GoogleMap } from '../components/GoogleMap';
 import { HostingSettings } from '../components/HostingSettings';
 import { usePropertyStore, Property } from '../stores/propertyStore';
 import { PropertyPreview } from '../components/PropertyPreview';
+import { ImageSelectionPopup } from '../components/ImageSelectionPopup';
 
 // Predefined property amenity categories
 const amenityCategories = {
@@ -171,6 +172,15 @@ export function PageManager() {
   });
   
   const [showHomepagePreview, setShowHomepagePreview] = useState(false);
+  const [imageSelectionPopup, setImageSelectionPopup] = useState<{
+    isOpen: boolean;
+    target: 'heroImage' | 'gridLarge' | 'gridSmall1' | 'gridSmall2' | null;
+    title: string;
+  }>({
+    isOpen: false,
+    target: null,
+    title: ''
+  });
   
   // Contact information state - initialize from localStorage or use defaults
   const [contactInfo, setContactInfo] = useState(() => {
@@ -216,6 +226,11 @@ const [showPreview, setShowPreview] = useState(false);
     addProperty, 
     removeProperty
   } = usePropertyStore();
+  
+  // Collect all images from all properties for the image selection popup
+  const allSiteImages = useMemo(() => {
+    return properties.flatMap(p => p.images || []);
+  }, [properties]);
 
   // Set initial active property
   useEffect(() => {
@@ -1270,14 +1285,12 @@ const [showPreview, setShowPreview] = useState(false);
                             />
                             <button
                               onClick={() => {
-                                // Open a modal or dialog to select from site images
-                                const allImages = properties.flatMap(p => p.images || []);
-                                if (allImages.length > 0) {
-                                  setHomepageSettings({
-                                    ...homepageSettings,
-                                    heroImage: allImages[0]
+                                if (allSiteImages.length > 0) {
+                                  setImageSelectionPopup({
+                                    isOpen: true,
+                                    target: 'heroImage',
+                                    title: 'Select Hero Image'
                                   });
-                                  toast.success('Image selected from site');
                                 } else {
                                   toast.error('No images available on site');
                                 }
@@ -1374,16 +1387,12 @@ const [showPreview, setShowPreview] = useState(false);
                             />
                             <button
                               onClick={() => {
-                                const allImages = properties.flatMap(p => p.images || []);
-                                if (allImages.length > 0) {
-                                  setHomepageSettings({
-                                    ...homepageSettings,
-                                    gridImages: {
-                                      ...homepageSettings.gridImages,
-                                      large: allImages[0]
-                                    }
+                                if (allSiteImages.length > 0) {
+                                  setImageSelectionPopup({
+                                    isOpen: true,
+                                    target: 'gridLarge',
+                                    title: 'Select Large Grid Image'
                                   });
-                                  toast.success('Image selected from site');
                                 } else {
                                   toast.error('No images available on site');
                                 }
@@ -1423,25 +1432,12 @@ const [showPreview, setShowPreview] = useState(false);
                             />
                             <button
                               onClick={() => {
-                                const allImages = properties.flatMap(p => p.images || []);
-                                if (allImages.length > 1) {
-                                  setHomepageSettings({
-                                    ...homepageSettings,
-                                    gridImages: {
-                                      ...homepageSettings.gridImages,
-                                      small1: allImages[1]
-                                    }
+                                if (allSiteImages.length > 0) {
+                                  setImageSelectionPopup({
+                                    isOpen: true,
+                                    target: 'gridSmall1',
+                                    title: 'Select Small Grid Image 1'
                                   });
-                                  toast.success('Image selected from site');
-                                } else if (allImages.length > 0) {
-                                  setHomepageSettings({
-                                    ...homepageSettings,
-                                    gridImages: {
-                                      ...homepageSettings.gridImages,
-                                      small1: allImages[0]
-                                    }
-                                  });
-                                  toast.success('Image selected from site');
                                 } else {
                                   toast.error('No images available on site');
                                 }
@@ -1481,25 +1477,12 @@ const [showPreview, setShowPreview] = useState(false);
                             />
                             <button
                               onClick={() => {
-                                const allImages = properties.flatMap(p => p.images || []);
-                                if (allImages.length > 2) {
-                                  setHomepageSettings({
-                                    ...homepageSettings,
-                                    gridImages: {
-                                      ...homepageSettings.gridImages,
-                                      small2: allImages[2]
-                                    }
+                                if (allSiteImages.length > 0) {
+                                  setImageSelectionPopup({
+                                    isOpen: true,
+                                    target: 'gridSmall2',
+                                    title: 'Select Small Grid Image 2'
                                   });
-                                  toast.success('Image selected from site');
-                                } else if (allImages.length > 0) {
-                                  setHomepageSettings({
-                                    ...homepageSettings,
-                                    gridImages: {
-                                      ...homepageSettings.gridImages,
-                                      small2: allImages[0]
-                                    }
-                                  });
-                                  toast.success('Image selected from site');
                                 } else {
                                   toast.error('No images available on site');
                                 }
@@ -1757,6 +1740,47 @@ const [showPreview, setShowPreview] = useState(false);
           onClose={() => setShowHomepagePreview(false)}
         />
       )}
+      
+      {/* Image Selection Popup */}
+      <ImageSelectionPopup
+        isOpen={imageSelectionPopup.isOpen}
+        onClose={() => setImageSelectionPopup({ isOpen: false, target: null, title: '' })}
+        images={allSiteImages}
+        title={imageSelectionPopup.title}
+        onSelectImage={(imageUrl) => {
+          if (imageSelectionPopup.target === 'heroImage') {
+            setHomepageSettings({
+              ...homepageSettings,
+              heroImage: imageUrl
+            });
+          } else if (imageSelectionPopup.target === 'gridLarge') {
+            setHomepageSettings({
+              ...homepageSettings,
+              gridImages: {
+                ...homepageSettings.gridImages,
+                large: imageUrl
+              }
+            });
+          } else if (imageSelectionPopup.target === 'gridSmall1') {
+            setHomepageSettings({
+              ...homepageSettings,
+              gridImages: {
+                ...homepageSettings.gridImages,
+                small1: imageUrl
+              }
+            });
+          } else if (imageSelectionPopup.target === 'gridSmall2') {
+            setHomepageSettings({
+              ...homepageSettings,
+              gridImages: {
+                ...homepageSettings.gridImages,
+                small2: imageUrl
+              }
+            });
+          }
+          toast.success('Image selected successfully');
+        }}
+      />
     </div>
   );
 }
