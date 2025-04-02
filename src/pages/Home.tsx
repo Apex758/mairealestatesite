@@ -8,45 +8,76 @@ import { PropertyCard } from '../components/PropertyCard';
 import { CurrencyConverter } from '../components/CurrencyConverter';
 import { usePropertyStore } from '../stores/propertyStore';
 import { useTranslate } from '../hooks/useTranslate';
+import { TranslationKey } from '../translations';
+
+// Default homepage settings (fallback if localStorage is empty)
+const DEFAULT_HOMEPAGE = {
+  heroImage: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&q=80",
+  heroTitle: "Dubai Real Estate",
+  propertyTypes: ["apartments", "condos", "houses", "homes"],
+  paymentTypes: ["Bitcoin", "USDT"],
+  gridImages: {
+    large: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&q=80",
+    small1: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&q=80",
+    small2: "https://images.unsplash.com/photo-1546412414-e1885259563a?auto=format&fit=crop&q=80"
+  },
+  textContent: {
+    cryptoPayments: "Crypto Payments",
+    purchaseYourDream: "Purchase your dream property with cryptocurrency",
+    primeLocations: "Prime Locations",
+    exclusiveProperties: "Exclusive properties in the most sought-after areas",
+    luxuryDubaiLiving: "Luxury Dubai Living",
+    dubaiMarina: "Dubai Marina",
+    downtownViews: "Downtown Views",
+    featuredProperties: "Featured Dubai Properties"
+  }
+};
 
 export function Home() {
   const { t } = useTranslate();
+  
+  // Load homepage settings from localStorage or use defaults
+  const [homepageSettings] = useState(() => {
+    const savedSettings = localStorage.getItem('homepageSettings');
+    return savedSettings ? JSON.parse(savedSettings) : DEFAULT_HOMEPAGE;
+  });
 
-  const propertyTypes = [t('apartments'), t('condos'), t('houses'), t('homes')];
-  const paymentTypes = ['Bitcoin', 'USDT'];
+  const propertyTypes = homepageSettings.propertyTypes.map((type: string) => t(type as TranslationKey));
+  const paymentTypes = homepageSettings.paymentTypes;
   const parallaxRef = useRef<HTMLDivElement | null>(null);
   const [currentPropertyType, setCurrentPropertyType] = useState(0);
   const [currentPaymentType, setCurrentPaymentType] = useState(0);
   
+  // Create grid sections from homepage settings
   const gridSections = [
     {
       type: 'image',
-      image: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&q=80",
-      title: t('luxuryDubaiLiving'),
+      image: homepageSettings.gridImages.large,
+      title: t(homepageSettings.textContent.luxuryDubaiLiving as TranslationKey),
       size: "large"
     },
     {
       type: 'text',
-      title: t('cryptoPayments'),
-      description: t('purchaseYourDream'),
+      title: t(homepageSettings.textContent.cryptoPayments as TranslationKey),
+      description: t(homepageSettings.textContent.purchaseYourDream as TranslationKey),
       size: "small"
     },
     {
       type: 'image',
-      image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&q=80",
-      title: t('dubaiMarina'),
+      image: homepageSettings.gridImages.small1,
+      title: t(homepageSettings.textContent.dubaiMarina as TranslationKey),
       size: "small"
     },
     {
       type: 'text',
-      title: t('primeLocations'),
-      description: t('exclusiveProperties'),
+      title: t(homepageSettings.textContent.primeLocations as TranslationKey),
+      description: t(homepageSettings.textContent.exclusiveProperties as TranslationKey),
       size: "small"
     },
     {
       type: 'image',
-      image: "https://images.unsplash.com/photo-1546412414-e1885259563a?auto=format&fit=crop&q=80",
-      title: t('downtownViews'),
+      image: homepageSettings.gridImages.small2,
+      title: t(homepageSettings.textContent.downtownViews as TranslationKey),
       size: "small"
     }
   ];
@@ -92,18 +123,18 @@ export function Home() {
           className="absolute inset-0"
         >
           <img
-            src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&q=80"
+            src={homepageSettings.heroImage}
             alt="Dubai Skyline"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/40" />
         </div>
         <div className="relative text-center text-white z-10 max-w-4xl px-4">
-          <h1 className="text-8xl font-bold mb-8">{t('dubaiRealEstate')}</h1>
+          <h1 className="text-8xl font-bold mb-8">{homepageSettings.heroTitle}</h1>
           <div className="text-3xl mb-12 flex items-center justify-center gap-2">
             <span>{t('buy')}</span>
             <div className="relative w-40 h-12 inline-block">
-              {propertyTypes.map((type, index) => (
+              {propertyTypes.map((type: string, index: number) => (
                 <span
                   key={type}
                   className="absolute inset-0 flex items-center justify-center transition-all duration-500 transform"
@@ -119,7 +150,7 @@ export function Home() {
             </div>
             <span>{t('with')}</span>
             <div className="relative w-32 h-12 inline-block">
-              {paymentTypes.map((type, index) => (
+              {paymentTypes.map((type: string, index: number) => (
                 <span
                   key={type}
                   className="absolute inset-0 flex items-center justify-center transition-all duration-500 transform"
@@ -202,7 +233,7 @@ export function Home() {
       <div className="bg-white dark:bg-gray-800 py-24"> 
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-4 mb-16">
-            <h2 className="text-4xl font-light text-gray-900 dark:text-white">{t('featuredDubaiProperties')}</h2> 
+            <h2 className="text-4xl font-light text-gray-900 dark:text-white">{t(homepageSettings.textContent.featuredProperties as TranslationKey)}</h2> 
             <div className="flex-1 border-b border-gray-200 dark:border-gray-700" /> 
           </div>
           

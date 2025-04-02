@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog } from '@headlessui/react';
 import { PropertyCard } from './PropertyCard';
 import { GoogleMap, NearbyPlace } from './GoogleMap';
@@ -218,25 +218,31 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
   const handlePlaceTypeChange = (type: string | null) => {
     console.log(`Setting place type to: ${type}`);
     
-    // Check if we have cached places for this type
-    if (type && placeCache[type]) {
-      console.log(`Using cached places for ${type}`);
-      setNearbyPlaces(placeCache[type]);
-      setSelectedPlaceType(type);
-      // Even with cached places, we need to reset selections to ensure map updates
-      setSelectedPredefinedPlace(null);
-      setSelectedNearbyPlace(null);
-      return;
-    }
-    
+    // Always set the selected place type directly
+    // This is critical for triggering the useEffect in GoogleMap
     setSelectedPlaceType(type);
+    
     // Reset selected places when type changes
     setSelectedPredefinedPlace(null);
     setSelectedNearbyPlace(null);
+    
+    // Clear nearby places to ensure UI updates while loading
+    setNearbyPlaces([]);
+    
+    // Check if we have cached places for this type - but do this AFTER setting the type
+    // This ensures the GoogleMap component always gets the type change
+    if (type && placeCache[type]) {
+      console.log(`Using cached places for ${type}`);
+      // Use setTimeout to ensure the type change is processed first
+      setTimeout(() => {
+        setNearbyPlaces(placeCache[type]);
+      }, 0);
+    }
   };
 
   // Handler for when nearby places are found by the GoogleMap component
-  const handleNearbyPlacesFound = (places: NearbyPlace[]) => {
+  // Memoized with useCallback to prevent infinite re-renders
+  const handleNearbyPlacesFound = useCallback((places: NearbyPlace[]) => {
     console.log(`PropertyDetails received ${places.length} nearby places`);
     
     // Cache the places by their type
@@ -249,7 +255,7 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
     
     setNearbyPlaces(places);
     console.log("Updated nearbyPlaces state with new places");
-  };
+  }, [selectedPlaceType]); // Only re-create when selectedPlaceType changes
 
   return (
     <div>

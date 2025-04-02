@@ -2,6 +2,9 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleMap as GoogleMapComponent, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
 import { MapPin, Coffee, Utensils, ShoppingCart, School, Train } from 'lucide-react';
 
+// Enable debug mode for troubleshooting
+const DEBUG = true;
+
 interface GoogleMapProps {
   center: {
     lat: number;
@@ -53,12 +56,14 @@ const containerStyle = {
   height: '400px'
 };
 
+// Import the Libraries type from @react-google-maps/api
+import { Libraries } from '@react-google-maps/api';
+
 // Define libraries for Google Maps
-// Using a type that works with the Google Maps API
-const libraries: ("places" | "drawing" | "geometry" | "localContext" | "visualization")[] = ["places"];
+const libraries: Libraries = ['places'];
 
 // Define place types and their icons
-const placeTypeIcons: Record<string, React.ReactNode> = {
+export const placeTypeIcons: Record<string, React.ReactNode> = {
   cafe: <Coffee className="w-4 h-4" />,
   restaurant: <Utensils className="w-4 h-4" />,
   supermarket: <ShoppingCart className="w-4 h-4" />,
@@ -95,10 +100,14 @@ export function GoogleMap({
 
   // Initialize places service when map is loaded
   const onLoad = useCallback((map: google.maps.Map) => {
+    if (DEBUG) console.log("GoogleMap: Map loaded");
     mapRef.current = map;
     if (window.google) {
+      if (DEBUG) console.log("GoogleMap: Google API available, initializing services");
       placesServiceRef.current = new window.google.maps.places.PlacesService(map);
       directionsServiceRef.current = new window.google.maps.DirectionsService();
+    } else {
+      console.error("GoogleMap: Google API not available");
     }
   }, []);
 
@@ -137,6 +146,8 @@ export function GoogleMap({
     
     const searchNearbyPlaces = async () => {
       if (!placesServiceRef.current || !mapRef.current || !selectedType) {
+        if (DEBUG) console.log(`GoogleMap: Cannot search - Service ready: ${!!placesServiceRef.current}, Map ready: ${!!mapRef.current}, Type: ${selectedType}`);
+        
         if (isMounted) {
           setNearbyPlaces([]);
           if (onNearbyPlacesFound) onNearbyPlacesFound([]);
@@ -144,29 +155,34 @@ export function GoogleMap({
         return;
       }
       
-      console.log(`GoogleMap: Searching for nearby ${selectedType} places...`);
       // Force clear existing places first to ensure UI updates
       setNearbyPlaces([]);
       
+      // Add a small delay to ensure the UI updates before starting the search
+      // This helps make the pin dropping more visible to the user
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       try {
+        if (DEBUG) console.log(`GoogleMap: Searching for nearby places of type: ${selectedType}`);
+        
         const request = {
           location: new google.maps.LatLng(marker.lat, marker.lng),
           radius: travelMode === 'WALKING' ? 1200 : 5000, // ~15 min walking or ~10 min driving
-          type: selectedType as google.maps.places.PlaceType
+          type: selectedType as string
         };
         
-        console.log('Searching for nearby places with request:', request);
+        if (DEBUG) console.log('Searching for nearby places with request:', request);
 
         placesServiceRef.current.nearbySearch(request, (results, status) => {
           if (!isMounted) return;
           
-          console.log('Places API response status:', status);
-          console.log('Found places count:', results?.length || 0);
+          if (DEBUG) console.log('Places API response status:', status);
+          if (DEBUG) console.log('Found places count:', results?.length || 0);
           
           if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-            console.log('Places API returned results:', results);
+            if (DEBUG) console.log('Places API returned results:', results);
             // Map the results to our NearbyPlace format
-            console.log('Processing nearby places results...');
+            if (DEBUG) console.log('Processing nearby places results...');
             const places = results.map(place => ({
               id: place.place_id || Math.random().toString(36),
               name: place.name || 'Unnamed Place',
@@ -185,11 +201,11 @@ export function GoogleMap({
             }));
             
             // Calculate distances and durations for each place
-            console.log('Calculating travel times for places...');
+            if (DEBUG) console.log('Calculating travel times for places...');
             calculateTravelTimes(places);
           } else {
             // Handle case where no results are found
-            console.log(`No ${selectedType} places found nearby`);
+            if (DEBUG) console.log(`No ${selectedType} places found nearby`);
             setNearbyPlaces([]);
             if (onNearbyPlacesFound) onNearbyPlacesFound([]);
           }
@@ -205,8 +221,10 @@ export function GoogleMap({
     
     // Only search if we have a selected type
     if (selectedType) {
+      if (DEBUG) console.log(`GoogleMap: Starting search for type ${selectedType}`);
       searchNearbyPlaces();
     } else {
+      if (DEBUG) console.log(`GoogleMap: No place type selected, clearing results`);
       setNearbyPlaces([]);
       if (onNearbyPlacesFound) onNearbyPlacesFound([]);
     }
@@ -214,18 +232,18 @@ export function GoogleMap({
     return () => {
       isMounted = false;
     };
-  }, [selectedType, marker, travelMode, readOnly, onNearbyPlacesFound]);
+  }, [selectedType, marker, travelMode, readOnly]); // Removed onNearbyPlacesFound from dependencies to prevent infinite loops
   
   // Calculate travel times for all places
   const calculateTravelTimes = (places: NearbyPlace[]) => {
     if (!directionsServiceRef.current || places.length === 0) {
-      console.log('No places to calculate travel times for');
+      if (DEBUG) console.log('No places to calculate travel times for');
       setNearbyPlaces([]);
       if (onNearbyPlacesFound) onNearbyPlacesFound([]);
       return;
     }
 
-    console.log(`Calculating travel times for ${places.length} places`);
+    if (DEBUG) console.log(`Calculating travel times for ${places.length} places`);
     
     const origin = new google.maps.LatLng(marker.lat, marker.lng);
     const placesWithTimes: Array<NearbyPlace & { distanceValue?: number }> = [];
@@ -282,13 +300,13 @@ export function GoogleMap({
                 stableIndex: index // Add a stable index
               }));
 
-              console.log(`Setting ${indexedPlaces.length} nearby places`);
+              if (DEBUG) console.log(`Setting ${indexedPlaces.length} nearby places`);
               setNearbyPlaces(indexedPlaces);
               if (onNearbyPlacesFound) {
-                console.log('Calling onNearbyPlacesFound with places');
+                if (DEBUG) console.log('Calling onNearbyPlacesFound with places');
                 onNearbyPlacesFound(indexedPlaces);
               } else {
-                console.log('onNearbyPlacesFound callback is not defined');
+                if (DEBUG) console.log('onNearbyPlacesFound callback is not defined');
               }
             }
           }
@@ -402,8 +420,6 @@ export function GoogleMap({
     predefined: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
     nearby: `https://maps.google.com/mapfiles/ms/icons/${markerColor}-dot.png` // Use the color prop
   };
-
-  // No custom map styles - keeping original Google Maps appearance
 
   return (
     <div className="relative h-full w-full">
