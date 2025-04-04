@@ -1,5 +1,6 @@
 import React from 'react';
 import { DarkModeToggle } from './components/DarkModeToggle';
+import { LanguageCurrencyControls } from './components/LanguageCurrencyControls';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { Navbar } from './components/Navbar';
@@ -115,6 +116,7 @@ function App() {
             <div className="fixed bottom-4 left-4 z-50">
               <DarkModeToggle />
             </div>
+            <LanguageCurrencyControls />
           </div>
         </Router>
       </AuthProvider>

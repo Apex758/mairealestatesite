@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Phone, Bitcoin, Settings, User, LogIn, UserPlus, Heart, MessageCircle, Home } from 'lucide-react';
+import { Phone, Bitcoin, Settings, User, LogIn, UserPlus, Heart, MessageCircle, Home, Globe, Coins } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslate } from '../hooks/useTranslate';
 import { useAuth } from '../contexts/AuthContext';
+import { useGlobal } from '../contexts/GlobalContext';
 
 // Admin email (secure in production)
 const ADMIN_EMAIL = 'admin@mairealestate.com';
@@ -11,15 +12,22 @@ const ADMIN_EMAIL = 'admin@mairealestate.com';
 export function Navbar() {
   const { t } = useTranslate();
   const { user, isAuthenticated, login, logout, register } = useAuth();
+  const { language, setLanguage, currency, setCurrency } = useGlobal();
   const [isScrolled, setIsScrolled] = useState(false);
   const [showAuthDropdown, setShowAuthDropdown] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   
   const location = useLocation();
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const authButtonRef = useRef<HTMLButtonElement>(null);
+  const languageButtonRef = useRef<HTMLButtonElement>(null);
+  const currencyButtonRef = useRef<HTMLButtonElement>(null);
+  const languageDropdownRef = useRef<HTMLDivElement>(null);
+  const currencyDropdownRef = useRef<HTMLDivElement>(null);
   const [loginData, setLoginData] = useState({
     email: '',
     password: ''
@@ -45,6 +53,16 @@ export function Navbar() {
   const alwaysScrolled = isPropertyPage || isBitcoinPage || isContactPage || isPageManagerPage || 
                          isMessagesPage || isVipAccessPage || isPolicyPage || isDashboardPage || isFavoritesPage;
 
+  // Language options
+  const languages = [
+    { code: 'en', name: 'English' },
+    { code: 'ar', name: 'العربية' },
+    { code: 'ro', name: 'Română' }
+  ];
+
+  // Currency options
+  const currencies = ['AED', 'USD', 'EUR', 'GBP', 'RON', 'NGN', 'BTC', 'USDT'];
+
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
@@ -53,7 +71,7 @@ export function Navbar() {
     };
 
     const handleClickOutside = (event: MouseEvent) => {
-      // Close dropdown when clicking outside
+      // Close dropdowns when clicking outside
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node) &&
@@ -62,6 +80,24 @@ export function Navbar() {
       ) {
         setShowAuthDropdown(false);
         setShowLoginForm(false);
+      }
+
+      if (
+        languageDropdownRef.current &&
+        !languageDropdownRef.current.contains(event.target as Node) &&
+        languageButtonRef.current &&
+        !languageButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowLanguageDropdown(false);
+      }
+
+      if (
+        currencyDropdownRef.current &&
+        !currencyDropdownRef.current.contains(event.target as Node) &&
+        currencyButtonRef.current &&
+        !currencyButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowCurrencyDropdown(false);
       }
     };
 
@@ -183,8 +219,90 @@ export function Navbar() {
             <Link to="/about" className={`text-sm ${
               isScrolled ? 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white' : 'text-white/80 hover:text-white'
             }`}>
-              About Us
+              {t('aboutUs')}
             </Link>
+            {/* Language Dropdown */}
+            <div className="relative">
+              <button
+                ref={languageButtonRef}
+                onClick={() => {
+                  setShowLanguageDropdown(!showLanguageDropdown);
+                  setShowCurrencyDropdown(false);
+                }}
+                className={`text-sm flex items-center gap-1 ${
+                  isScrolled ? 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white' : 'text-white/80 hover:text-white'
+                }`}
+              >
+                <Globe className="w-4 h-4" />
+                {language.toUpperCase()}
+              </button>
+
+              {showLanguageDropdown && (
+                <div 
+                  ref={languageDropdownRef}
+                  className="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 border border-gray-100 dark:border-gray-700 z-50"
+                >
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => {
+                        setLanguage(lang.code as 'en' | 'ar' | 'ro');
+                        setShowLanguageDropdown(false);
+                      }}
+                      className={`w-full text-left px-4 py-2 text-sm ${
+                        language === lang.code
+                          ? 'bg-amber-500 text-white'
+                          : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      {lang.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Currency Dropdown */}
+            <div className="relative">
+              <button
+                ref={currencyButtonRef}
+                onClick={() => {
+                  setShowCurrencyDropdown(!showCurrencyDropdown);
+                  setShowLanguageDropdown(false);
+                }}
+                className={`text-sm flex items-center gap-1 ${
+                  isScrolled ? 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white' : 'text-white/80 hover:text-white'
+                }`}
+              >
+                <Coins className="w-4 h-4" />
+                {currency}
+              </button>
+
+              {showCurrencyDropdown && (
+                <div 
+                  ref={currencyDropdownRef}
+                  className="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 border border-gray-100 dark:border-gray-700 z-50"
+                >
+                  {currencies.map((curr) => (
+                    <button
+                      key={curr}
+                      onClick={() => {
+                        setCurrency(curr as 'AED' | 'USD' | 'USDT' | 'BTC' | 'EUR' | 'GBP' | 'RON' | 'NGN');
+                        setShowCurrencyDropdown(false);
+                      }}
+                      className={`w-full text-left px-4 py-2 text-sm ${
+                        currency === curr
+                          ? 'bg-amber-500 text-white'
+                          : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      {curr}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <Link to="/bitcoin" className={`text-sm flex items-center gap-1 ${
               isScrolled ? 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white' : 'text-white/80 hover:text-white'
             }`}>

@@ -157,6 +157,7 @@ export function PropertyPage({ previewData }: PropertyPageProps) {
 
           {/* Property Details component will handle its own dark mode through props */}
           <PropertyDetails 
+            id={property.id}
             details={{
               bedrooms: property.beds,
               bathrooms: property.baths,
@@ -179,10 +180,14 @@ export function PropertyPage({ previewData }: PropertyPageProps) {
             location={{
               lat: property.location.lat,
               lng: property.location.lng,
+              address: property.address,
               distances: property.location.distances
             }}
             similarProperties={similarProperties}
             brochureImages={property.brochureImages || []}
+            price={property.price}
+            currency={property.currency}
+            name={property.name}
           />
         </div>
       </div>

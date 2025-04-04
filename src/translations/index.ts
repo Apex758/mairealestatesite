@@ -6,6 +6,7 @@ export type TranslationKey =
   | 'vipAccess'
   | 'bitcoin'
   | 'policy'
+  | 'aboutUs'
   | 'propertyDetails'
   | 'features'
   | 'location'
@@ -59,6 +60,11 @@ export type TranslationKey =
   | 'clearFilters'
   | 'propertyType'
   | 'translating'
+  | 'sqft'
+  | 'brochure'
+  | 'close'
+  | 'brochureImages'
+  | 'noBrochureImages'
   // Home page
   | 'dubaiRealEstate'
   | 'buy'
@@ -103,6 +109,7 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
     vipAccess: 'VIP Access',
     bitcoin: 'Bitcoin',
     policy: 'Policy',
+    aboutUs: 'About Us',
     propertyDetails: 'Property Details',
     features: 'Features & Amenities',
     location: 'Location',
@@ -155,6 +162,11 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
     noPropertiesMatch: 'No properties match your search criteria',
     clearFilters: 'Clear Filters',
     propertyType: 'Property Type',
+    sqft: 'sqft',
+    brochure: 'Brochure',
+    close: 'Close',
+    brochureImages: 'Brochure Images',
+    noBrochureImages: 'No brochure images available',
     // Home page
     dubaiRealEstate: 'Dubai Real Estate',
     buy: 'Buy',
@@ -198,6 +210,7 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
     vipAccess: 'وصول VIP',
     bitcoin: 'بيتكوين',
     policy: 'السياسة',
+    aboutUs: 'معلومات عنا',
     propertyDetails: 'تفاصيل العقار',
     features: 'الميزات والمرافق',
     location: 'الموقع',
@@ -250,6 +263,11 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
     noPropertiesMatch: 'لا توجد عقارات تطابق معايير البحث الخاصة بك',
     clearFilters: 'مسح الفلاتر',
     propertyType: 'نوع العقار',
+    sqft: 'قدم مربع',
+    brochure: 'كتيب',
+    close: 'إغلاق',
+    brochureImages: 'صور الكتيب',
+    noBrochureImages: 'لا توجد صور كتيب متاحة',
     // Home page
     dubaiRealEstate: 'عقارات دبي',
     buy: 'اشتري',
@@ -293,6 +311,7 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
     vipAccess: 'Acces VIP',
     bitcoin: 'Bitcoin',
     policy: 'Politică',
+    aboutUs: 'Despre Noi',
     propertyDetails: 'Detalii Proprietate',
     features: 'Caracteristici și Facilități',
     location: 'Locație',
@@ -345,6 +364,11 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
     noPropertiesMatch: 'Nicio proprietate nu corespunde criteriilor de căutare',
     clearFilters: 'Șterge Filtrele',
     propertyType: 'Tip Proprietate',
+    sqft: 'mp',
+    brochure: 'Broșură',
+    close: 'Închide',
+    brochureImages: 'Imagini Broșură',
+    noBrochureImages: 'Nu există imagini de broșură disponibile',
     // Home page
     dubaiRealEstate: 'Imobiliare Dubai',
     buy: 'Cumpără',

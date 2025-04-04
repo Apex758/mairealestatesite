@@ -3,6 +3,7 @@ import { Heart, BedDouble, Bath, Square } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useUserStore, FavoriteProperty } from '../stores/userStore';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslate } from '../hooks/useTranslate';
 import { toast } from 'sonner';
 
 interface PropertyCardProps {
@@ -32,15 +33,16 @@ export function PropertyCard({
 }: PropertyCardProps) {
   const { isAuthenticated } = useAuth();
   const { addToFavorites, removeFromFavorites, isFavorite } = useUserStore();
+  const { t } = useTranslate();
   const [isFavorited, setIsFavorited] = useState(false);
 
   // Use first slideshow image only
   const displayImage = slideshowImages.length > 0 ? slideshowImages[0] : '';
 
-  // Check if property is in favorites
+  // Check if property is in favorites and update when language or currency changes
   useEffect(() => {
     setIsFavorited(isFavorite(id));
-  }, [id, isFavorite]);
+  }, [id, isFavorite, t]); // Add t dependency to refresh when language changes
 
   const toggleFavorite = (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent navigation
@@ -103,15 +105,15 @@ export function PropertyCard({
           <div className="flex items-center gap-4 mt-4 text-gray-500 dark:text-gray-400"> 
             <div className="flex items-center gap-1">
               <BedDouble className="w-4 h-4" />
-              <span>{beds} beds</span>
+              <span>{beds} {t('bedrooms')}</span>
             </div>
             <div className="flex items-center gap-1">
               <Bath className="w-4 h-4" />
-              <span>{baths} baths</span>
+              <span>{baths} {t('bathrooms')}</span>
             </div>
             <div className="flex items-center gap-1">
               <Square className="w-4 h-4" />
-              <span>{sqft} sqft</span>
+              <span>{sqft} {t('sqft')}</span>
             </div>
           </div>
         </div>

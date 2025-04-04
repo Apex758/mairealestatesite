@@ -210,10 +210,10 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
     setSelectedNearbyPlace(null);
   }, [selectedPlaceType]);
 
-  // Check if property is in favorites
+  // Check if property is in favorites and update when language or currency changes
   useEffect(() => {
     setIsFavorited(isFavorite(id));
-  }, [id, isFavorite]);
+  }, [id, isFavorite, language]); // Add language dependency to refresh when language changes
 
   // Debug nearby places
   useEffect(() => {
@@ -315,12 +315,12 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
 <Dialog open={isBrochureOpen} onClose={() => setIsBrochureOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"> 
   {/* Added dark mode background and text */}
   <Dialog.Panel className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-4xl w-full"> 
-    <Dialog.Title className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Brochure Images</Dialog.Title> 
+    <Dialog.Title className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t('brochureImages')}</Dialog.Title> 
     
     {/* No brochure images message */}
     {(!brochureImages || brochureImages.length === 0) ? (
       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-        <p>No brochure images available</p>
+        <p>{t('noBrochureImages')}</p>
       </div>
     ) : (
       <>
@@ -361,7 +361,7 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
       onClick={() => setIsBrochureOpen(false)}
       className="mt-6 px-4 py-2 bg-gray-800 dark:bg-gray-600 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-500" 
     >
-      Close
+      {t('close')}
     </button>
   </Dialog.Panel>
 </Dialog>
@@ -430,7 +430,7 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
     onClick={() => setIsBrochureOpen(true)}
     className="flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-700 shadow-xl rounded-lg transition-transform duration-300 [transform:rotateY(-25deg)] hover:[transform:rotateY(0deg)] [transform-style:preserve-3d]" // Changed rotation to -25deg (left), increased padding
   >
-    <span className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Brochure</span> {/* Increased font size and margin */}
+    <span className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">{t('brochure')}</span> {/* Increased font size and margin */}
     <img 
       src={brochureImages && brochureImages.length > 0 ? brochureImages[0] : "/brochure-placeholder.png"} 
       alt="Brochure" 

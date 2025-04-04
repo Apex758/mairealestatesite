@@ -3,10 +3,17 @@ import {
   Home, 
   Heart, 
   MessageCircle, 
-  CreditCard, 
   MapPin, 
   User,
-  LogOut
+  LogOut,
+  Settings,
+  Bell,
+  Star,
+  Eye,
+  Trash2,
+  Check,
+  Zap,
+  Phone
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -22,19 +29,19 @@ interface UserProperty {
   status: 'viewed' | 'interested' | 'negotiating';
 }
 
-interface RecentActivity {
-  id: string;
-  type: 'message' | 'property_view' | 'favorite';
-  details: string;
-  timestamp: Date;
-}
-
 export function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { language } = useGlobal();
   const { favorites, messages, getUnreadMessageCount, removeFromFavorites, markMessageAsRead } = useUserStore();
   const [activeTab, setActiveTab] = useState<'overview' | 'account'>('overview');
+  
+  // Animation effect for luxury elements
+  const [isVisible, setIsVisible] = useState(false);
+  
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
   const [translatedContent, setTranslatedContent] = useState({
     dashboard: 'My Dashboard',
     overview: 'Overview',
@@ -57,8 +64,6 @@ export function Dashboard() {
     reply: 'Reply',
     markAsRead: 'Mark as Read',
     quickActions: 'Quick Actions',
-    recentActivities: 'Recent Activities',
-    noActivities: 'No recent activities',
     fullName: 'Full Name',
     emailAddress: 'Email Address',
     phoneNumber: 'Phone Number',
@@ -103,8 +108,6 @@ export function Dashboard() {
           reply: await translateText('Reply', language),
           markAsRead: await translateText('Mark as Read', language),
           quickActions: await translateText('Quick Actions', language),
-          recentActivities: await translateText('Recent Activities', language),
-          noActivities: await translateText('No recent activities', language),
           fullName: await translateText('Full Name', language),
           emailAddress: await translateText('Email Address', language),
           phoneNumber: await translateText('Phone Number', language),
@@ -128,6 +131,7 @@ export function Dashboard() {
 
     translateContent();
   }, [language]);
+  
   const [userProperties] = useState<UserProperty[]>([
     {
       id: 'prop1',
@@ -142,53 +146,6 @@ export function Dashboard() {
       status: 'interested'
     }
   ]);
-
-  // Generate recent activities based on favorites and messages
-  const generateRecentActivities = (): RecentActivity[] => {
-    const activities: RecentActivity[] = [];
-    
-    // Add recent messages as activities
-    messages.slice(0, 3).forEach(msg => {
-      if (msg.sender !== 'You') {
-        activities.push({
-          id: `msg-${msg.id}`,
-          type: 'message',
-          details: `New message: ${msg.content.substring(0, 40)}${msg.content.length > 40 ? '...' : ''}`,
-          timestamp: msg.timestamp
-        });
-      }
-    });
-    
-    // Add favorite properties as activities
-    favorites.slice(0, 2).forEach(fav => {
-      activities.push({
-        id: `fav-${fav.id}`,
-        type: 'favorite',
-        details: `You added ${fav.name} to your favorites`,
-        timestamp: new Date(Date.now() - Math.random() * 86400000) // Random time in the last 24 hours
-      });
-    });
-    
-    // Add property views
-    userProperties.forEach(prop => {
-      activities.push({
-        id: `view-${prop.id}`,
-        type: 'property_view',
-        details: `You viewed ${prop.name}`,
-        timestamp: new Date(Date.now() - Math.random() * 172800000) // Random time in the last 48 hours
-      });
-    });
-    
-    // Sort by timestamp (newest first)
-    return activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 5);
-  };
-
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
-  
-  // Update recent activities when favorites or messages change
-  useEffect(() => {
-    setRecentActivities(generateRecentActivities());
-  }, [favorites, messages]);
   
   // User account settings
   const [accountSettings, setAccountSettings] = useState({
@@ -229,41 +186,34 @@ export function Dashboard() {
     // In a real app, this would make an API call to save the settings
     toast.success(translatedContent.accountSettingsSaved);
   };
-  
-  // Add a new activity when the component mounts
-  useEffect(() => {
-    const newActivity: RecentActivity = {
-      id: `activity-${Date.now()}`,
-      type: 'favorite',
-      details: 'You added Palm Jumeirah Villa to your favorites',
-      timestamp: new Date()
-    };
-    
-    setRecentActivities(prev => [newActivity, ...prev]);
-  }, []);
 
   // Overview tab content
   const renderOverviewTab = () => (
     <div className="grid md:grid-cols-3 gap-6">
       {/* User Welcome Card */}
-      <div className="md:col-span-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+      <div className="md:col-span-3 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-8 mb-8">
+        <div className="flex items-center gap-6">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 p-1 flex items-center justify-center shadow-lg">
             {user?.avatar ? (
               <img 
                 src={user.avatar} 
                 alt={user.name} 
-                className="w-16 h-16 rounded-full object-cover"
+                className="w-full h-full rounded-full object-cover"
               />
             ) : (
-              <User className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              <User className="w-10 h-10 text-white" />
             )}
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              {translatedContent.welcomeBack}, {user?.name || 'User'}
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-2 mb-1">
+              <Star className="w-5 h-5 text-amber-500" />
+              <h2 className="text-2xl font-light text-gray-900 dark:text-white">
+                {translatedContent.welcomeBack}, <span className="font-medium text-amber-500 dark:text-amber-400">{user?.name || 'User'}</span>
+              </h2>
+            </div>
+            <div className="h-px w-32 bg-amber-500/30 mb-3"></div>
+            <p className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+              <Bell className="w-4 h-4 text-amber-500" />
               {translatedContent.manageYourFavorites}
             </p>
           </div>
@@ -271,11 +221,19 @@ export function Dashboard() {
       </div>
       
       {/* Favorites */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+      <div className="md:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 border border-gray-200 dark:border-gray-700 relative overflow-hidden">
+        {/* Decorative element */}
+        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-amber-500 to-transparent"></div>
+        
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-            {translatedContent.myFavorites}
-          </h3>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+              <Heart className="w-4 h-4 text-red-600 dark:text-red-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+              {translatedContent.myFavorites}
+            </h3>
+          </div>
           <div className="flex items-center gap-2">
             {favorites.length > 0 && (
               <select 
@@ -289,7 +247,7 @@ export function Dashboard() {
             )}
             <Link 
               to="/favorites" 
-              className="text-blue-600 hover:underline"
+              className="text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1"
             >
               {translatedContent.viewAll}
             </Link>
@@ -297,127 +255,73 @@ export function Dashboard() {
         </div>
 
         {favorites.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-600 dark:text-gray-400">
+          <div className="text-center py-12 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-dashed border-gray-300 dark:border-gray-600">
+            <Heart className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               {translatedContent.noFavorites}
             </p>
             <Link 
               to="/listings" 
-              className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="inline-block px-6 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-full hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg shadow-amber-900/20"
             >
               {translatedContent.browseProperties}
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
-            {favorites.slice(0, 3).map((property) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {favorites.slice(0, 4).map((property) => (
               <div 
                 key={property.id} 
-                className="flex items-center gap-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                className="flex flex-col bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all group overflow-hidden"
               >
-                <img 
-                  src={property.image} 
-                  alt={property.name} 
-                  className="w-20 h-20 object-cover rounded-lg"
-                />
-                <div className="flex-1">
-                  <h4 className="text-md font-medium text-gray-900 dark:text-white">
-                    {property.name}
-                  </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    {property.address}
-                  </p>
-                  <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                    <span>{property.beds} beds</span>
-                    <span>{property.baths} baths</span>
-                    <span>{property.sqft} sqft</span>
-                    <span className="font-semibold text-blue-600">
+                <div className="relative h-40 overflow-hidden">
+                  <img 
+                    src={property.image} 
+                    alt={property.name} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
+                    <h4 className="text-md font-medium text-white truncate">
+                      {property.name}
+                    </h4>
+                    <p className="text-xs text-gray-200 truncate">
+                      {property.address}
+                    </p>
+                  </div>
+                </div>
+                <div className="p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                      <span>{property.beds} {translatedContent.beds}</span>
+                      <span>•</span>
+                      <span>{property.baths} {translatedContent.baths}</span>
+                      <span>•</span>
+                      <span>{property.sqft} sqft</span>
+                    </div>
+                    <span className="font-semibold text-amber-600 dark:text-amber-400 text-sm">
                       {new Intl.NumberFormat('en-AE', { 
                         style: 'currency', 
-                        currency: property.currency 
+                        currency: property.currency,
+                        maximumFractionDigits: 0
                       }).format(property.price)}
                     </span>
                   </div>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Link 
-                    to={`/property/${property.id}`}
-                    className="text-blue-600 hover:underline text-sm"
-                  >
-                    View
-                  </Link>
-                  <button
-                    onClick={() => removeFromFavorites(property.id)}
-                    className="text-red-500 hover:underline text-sm"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Messages Preview */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Recent Messages
-          </h3>
-          <Link 
-            to="/messages" 
-            className="text-blue-600 hover:underline"
-          >
-            View All
-          </Link>
-        </div>
-
-        {messages.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-600 dark:text-gray-400">
-              No messages yet
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {messages.slice(0, 3).map((message) => (
-              <div 
-                key={message.id} 
-                className={`flex items-start gap-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg ${!message.read ? 'border-l-4 border-blue-500' : ''}`}
-              >
-                <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center flex-shrink-0">
-                  <User className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-start mb-1">
-                    <h4 className="font-medium text-gray-900 dark:text-white">
-                      {message.sender}
-                    </h4>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {message.timestamp.toLocaleString()}
-                    </span>
-                  </div>
-                  <p className="text-gray-700 dark:text-gray-300 text-sm mb-2">
-                    {message.content.length > 60 
-                      ? `${message.content.substring(0, 60)}...` 
-                      : message.content}
-                  </p>
                   <div className="flex gap-2">
                     <Link 
-                      to="/messages" 
-                      className="text-xs px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50"
+                      to={`/property/${property.id}`}
+                      className="flex-1 text-center text-xs px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full hover:bg-amber-200 dark:hover:bg-amber-900/50 flex items-center justify-center gap-1"
                     >
-                      Reply
+                      <Eye className="w-3 h-3" />
+                      {translatedContent.view}
                     </Link>
-                    {!message.read && (
-                      <button 
-                        onClick={() => markMessageAsRead(message.id)}
-                        className="text-xs px-3 py-1 bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-gray-500"
-                      >
-                        Mark as Read
-                      </button>
-                    )}
+                    <button
+                      onClick={() => removeFromFavorites(property.id)}
+                      className="flex-1 text-center text-xs px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full hover:bg-red-100 dark:hover:bg-red-900/40 flex items-center justify-center gap-1"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      {translatedContent.remove}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -426,101 +330,78 @@ export function Dashboard() {
         )}
       </div>
 
-      {/* Recent Activities & Quick Actions */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+      {/* Quick Actions */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 border border-gray-200 dark:border-gray-700 relative overflow-hidden">
+        {/* Decorative element */}
+        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-purple-500 to-transparent"></div>
+        
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Quick Actions
-          </h3>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+              <Zap className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+              {translatedContent.quickActions}
+            </h3>
+          </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-2 gap-4">
           <Link 
             to="/favorites" 
-            className="flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-700 p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 relative"
+            className="flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-700 p-5 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all group relative"
           >
-            <Heart className="w-6 h-6 text-red-500 mb-2" />
-            <span className="text-sm text-gray-900 dark:text-white">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center mb-3 shadow-md group-hover:scale-110 transition-transform">
+              <Heart className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
               Favorites
             </span>
             {favorites.length > 0 && (
-              <span className="absolute top-2 right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+              <span className="absolute top-3 right-3 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full shadow-md">
                 {favorites.length}
               </span>
             )}
           </Link>
           <Link 
             to="/messages" 
-            className="flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-700 p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 relative"
+            className="flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-700 p-5 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all group relative"
           >
-            <MessageCircle className="w-6 h-6 text-blue-500 mb-2" />
-            <span className="text-sm text-gray-900 dark:text-white">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center mb-3 shadow-md group-hover:scale-110 transition-transform">
+              <MessageCircle className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
               Messages
             </span>
             {getUnreadMessageCount() > 0 && (
-              <span className="absolute top-2 right-2 bg-blue-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+              <span className="absolute top-3 right-3 bg-green-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full shadow-md">
                 {getUnreadMessageCount()}
               </span>
             )}
           </Link>
           <Link 
             to="/listings" 
-            className="flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-700 p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+            className="flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-700 p-5 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all group"
           >
-            <MapPin className="w-6 h-6 text-green-500 mb-2" />
-            <span className="text-sm text-gray-900 dark:text-white">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center mb-3 shadow-md group-hover:scale-110 transition-transform">
+              <MapPin className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               Browse Properties
             </span>
           </Link>
           <Link 
             to="/contact" 
-            className="flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-700 p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600"
+            className="flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-700 p-5 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all group"
           >
-            <CreditCard className="w-6 h-6 text-purple-500 mb-2" />
-            <span className="text-sm text-gray-900 dark:text-white">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center mb-3 shadow-md group-hover:scale-110 transition-transform">
+              <Phone className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
               Contact Support
             </span>
           </Link>
         </div>
-        
-        <h4 className="font-medium text-gray-900 dark:text-white mb-4">
-          Recent Activities
-        </h4>
-        
-        {recentActivities.length === 0 ? (
-          <div className="text-center py-4">
-            <p className="text-gray-600 dark:text-gray-400">
-              No recent activities
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {recentActivities.slice(0, 3).map((activity, index) => (
-              <div 
-                key={index} 
-                className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg"
-              >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 
-                  ${activity.type === 'message' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : 
-                    activity.type === 'favorite' ? 'bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-400' : 
-                    'bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400'}`}
-                >
-                  {activity.type === 'message' ? <MessageCircle className="w-4 h-4" /> : 
-                   activity.type === 'favorite' ? <Heart className="w-4 h-4" /> : 
-                   <Home className="w-4 h-4" />}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-900 dark:text-white">
-                    {activity.details}
-                  </p>
-                  <span className="text-xs text-gray-600 dark:text-gray-400">
-                    {activity.timestamp.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
@@ -648,42 +529,77 @@ export function Dashboard() {
   );
 
   return (
-    <div className="pt-16 min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <Home className="w-8 h-8 text-gray-600 dark:text-gray-300" />
-            <h1 className="text-3xl font-light text-gray-900 dark:text-white">{translatedContent.dashboard}</h1>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setActiveTab('overview')}
-              className={`px-4 py-2 rounded-lg ${
-                activeTab === 'overview' 
-                  ? 'bg-gray-900 text-white dark:bg-gray-700' 
-                  : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-              }`}
-            >
-              {translatedContent.overview}
-            </button>
-            <button 
-              onClick={() => setActiveTab('account')}
-              className={`px-4 py-2 rounded-lg ${
-                activeTab === 'account' 
-                  ? 'bg-gray-900 text-white dark:bg-gray-700' 
-                  : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-              }`}
-            >
-              {translatedContent.accountSettings}
-            </button>
+    <div className="pt-16 min-h-screen bg-gradient-to-b from-gray-100 to-white dark:from-gray-900 dark:to-gray-800 overflow-hidden">
+      {/* Hero Section with Background Image */}
+      <div className="relative text-white">
+        {/* Background image with overlay */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" 
+            alt="Dubai Skyline" 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/60"></div>
+        </div>
+        
+        {/* Gold decorative elements */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 z-10"></div>
+        
+        <div className="relative z-10 max-w-6xl mx-auto px-4 py-16">
+          <div className={`transition-all duration-1000 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div className="flex items-center gap-6">
+                <div className="bg-gradient-to-br from-amber-400 to-amber-600 w-16 h-16 rounded-full flex items-center justify-center shadow-lg">
+                  {user?.avatar ? (
+                    <img 
+                      src={user.avatar} 
+                      alt={user.name} 
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-8 h-8 text-white" />
+                  )}
+                </div>
+                <div>
+                  <div className="inline-flex items-center mb-2">
+                    <div className="h-px w-8 bg-amber-400 mr-3"></div>
+                    <span className="text-amber-400 tracking-[0.2em] uppercase text-xs font-light">Premium</span>
+                  </div>
+                  <h1 className="text-4xl font-light tracking-wider">{translatedContent.dashboard}</h1>
+                </div>
+              </div>
+              
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setActiveTab('overview')}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    activeTab === 'overview' 
+                      ? 'bg-white text-gray-900' 
+                      : 'text-white hover:bg-white/10'
+                  }`}
+                >
+                  {translatedContent.overview}
+                </button>
+                <button
+                  onClick={() => setActiveTab('account')}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    activeTab === 'account' 
+                      ? 'bg-white text-gray-900' 
+                      : 'text-white hover:bg-white/10'
+                  }`}
+                >
+                  {translatedContent.accountSettings}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-
+      </div>
+      
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-4 py-12">
         {activeTab === 'overview' ? renderOverviewTab() : renderAccountTab()}
       </div>
     </div>
   );
 }
-
-export default Dashboard;

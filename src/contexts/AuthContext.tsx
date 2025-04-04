@@ -20,16 +20,31 @@ interface AuthContextType {
 // Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Mock user database with credentials
+interface UserCredential {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  avatar?: string;
+}
+
 // Admin credentials
 const ADMIN_EMAIL = 'admin@mairealestate.com';
+const ADMIN_PASSWORD = 'admin123'; // In a real app, this would be hashed
 
-// Mock admin user
-const ADMIN_USER: User = {
-  id: 'admin1',
-  name: 'Admin',
-  email: ADMIN_EMAIL,
-  avatar: 'https://randomuser.me/api/portraits/men/1.jpg'
-};
+// Mock user database
+const mockUsers: UserCredential[] = [
+  {
+    id: 'admin1',
+    name: 'Admin',
+    email: ADMIN_EMAIL,
+    password: ADMIN_PASSWORD,
+    avatar: 'https://randomuser.me/api/portraits/men/1.jpg'
+  }
+];
+
+// No need for a separate ADMIN_USER constant as we're using mockUsers
 
 // Provider component
 interface AuthProviderProps {
@@ -66,45 +81,59 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Login function
   const login = async (email: string, password: string): Promise<boolean> => {
     // In a real app, this would make an API call to verify credentials
-    if (email && password) {
-      // Check if this is the admin account
-      if (email === ADMIN_EMAIL) {
-        setUser(ADMIN_USER);
-      } else {
-        // Create a user with the provided email
-        const newUser: User = {
-          id: `user-${Date.now()}`,
-          name: email.split('@')[0], // Use part of email as name
-          email: email,
-          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(email.split('@')[0])}&background=random`
-        };
-        setUser(newUser);
-      }
+    if (!email || !password) {
+      return false;
+    }
+
+    // Find user in mock database
+    const userCredential = mockUsers.find(user => user.email === email);
+    
+    // If user exists and password matches
+    if (userCredential && userCredential.password === password) {
+      // Set user without password using rest operator to exclude password
+      const { password: _unused, ...userWithoutPassword } = userCredential; // eslint-disable-line @typescript-eslint/no-unused-vars
+      setUser(userWithoutPassword);
       return true;
     }
+    
     return false;
   };
 
   // Register function
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
     // In a real app, this would make an API call to create a new user
-    if (name && email && password) {
-      // Don't allow registering with admin email
-      if (email === ADMIN_EMAIL) {
-        return false;
-      }
-      
-      // Create a new user with the provided details
-      const newUser: User = {
-        id: `user-${Date.now()}`,
-        name,
-        email,
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
-      };
-      setUser(newUser);
-      return true;
+    if (!name || !email || !password) {
+      return false;
     }
-    return false;
+    
+    // Don't allow registering with admin email
+    if (email === ADMIN_EMAIL) {
+      return false;
+    }
+    
+    // Check if email is already registered
+    if (mockUsers.some(user => user.email === email)) {
+      return false;
+    }
+    
+    // Create a new user with the provided details
+    const userId = `user-${Date.now()}`;
+    const newUser: UserCredential = {
+      id: userId,
+      name,
+      email,
+      password,
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`
+    };
+    
+    // Add to mock database
+    mockUsers.push(newUser);
+    
+    // Set user without password
+    const { password: _unused, ...userWithoutPassword } = newUser; // eslint-disable-line @typescript-eslint/no-unused-vars
+    setUser(userWithoutPassword);
+    
+    return true;
   };
 
   // Logout function

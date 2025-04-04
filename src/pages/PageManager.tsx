@@ -13,7 +13,8 @@ import {
   Check,
   X,
   FileText,
-  Layout
+  Layout,
+  Star
 } from 'lucide-react';
 import { HomePreview } from '../components/HomePreview';
 import { SortableImageGrid } from '../components/SortableImageGrid';
@@ -163,13 +164,16 @@ const DEFAULT_HOMEPAGE: HomepageSettings = {
 
 export function PageManager() {
   const [activeProperty, setActiveProperty] = useState<string | null>(null);
-  const [editingMode, setEditingMode] = useState<'details' | 'slideshow' | 'location' | 'amenities' | 'hosting' | 'content' | 'homepage'>('details');
+  const [editingMode, setEditingMode] = useState<'details' | 'slideshow' | 'location' | 'amenities' | 'hosting' | 'content' | 'homepage' | 'contact'>('details');
   const [selectedPlaceType, setSelectedPlaceType] = useState<string | null>("restaurant");
   // Initialize homepage settings from localStorage or use defaults
   const [homepageSettings, setHomepageSettings] = useState<HomepageSettings>(() => {
     const savedSettings = localStorage.getItem('homepageSettings');
     return savedSettings ? JSON.parse(savedSettings) : DEFAULT_HOMEPAGE;
   });
+  
+  // State for showcase properties
+  const [showcaseMode, setShowcaseMode] = useState(false);
   
   const [showHomepagePreview, setShowHomepagePreview] = useState(false);
   const [imageSelectionPopup, setImageSelectionPopup] = useState<{
@@ -211,6 +215,15 @@ export function PageManager() {
       cookiePolicy: ''
     };
   });
+  
+  // Contact map location - initialize from localStorage or use defaults
+  const [contactMapLocation, setContactMapLocation] = useState(() => {
+    const savedLocation = localStorage.getItem('contactMapLocation');
+    return savedLocation ? JSON.parse(savedLocation) : {
+      lat: 25.2048,
+      lng: 55.2708
+    };
+  });
   // Initialize hosting config from localStorage or use defaults
   const [hostingConfig, setHostingConfig] = useState<HostingConfig>(() => {
     const savedConfig = localStorage.getItem('hostingConfig');
@@ -224,7 +237,9 @@ const [showPreview, setShowPreview] = useState(false);
     properties, 
     updateProperty, 
     addProperty, 
-    removeProperty
+    removeProperty,
+    showcasePropertyIds,
+    setShowcaseProperties
   } = usePropertyStore();
   
   // Collect all images from all properties for the image selection popup
@@ -365,13 +380,23 @@ const [showPreview, setShowPreview] = useState(false);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-white dark:from-gray-900 dark:to-gray-800 pt-16">
+      {/* Gold decorative elements */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 z-40"></div>
+      <div className="absolute left-0 top-16 w-1 h-full bg-gradient-to-b from-amber-500 to-transparent"></div>
+      <div className="absolute right-0 top-16 w-1 h-full bg-gradient-to-b from-amber-500 to-transparent"></div>
+      
+      <div className="max-w-7xl mx-auto px-4 py-8 relative">
         {/* Top Bar */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 mb-8 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-3xl font-light">Property Listings</h1>
+              <div className="inline-flex items-center justify-center mb-0">
+                <div className="h-px w-8 bg-amber-400"></div>
+                <span className="mx-3 text-amber-500 tracking-[0.2em] uppercase text-xs font-light">Admin</span>
+                <div className="h-px w-8 bg-amber-400"></div>
+              </div>
+              <h1 className="text-3xl font-light text-gray-900 dark:text-white tracking-wider">Property Management</h1>
             </div>
             <div className="flex items-center gap-4">
               {currentProperty && (
@@ -402,7 +427,7 @@ const [showPreview, setShowPreview] = useState(false);
               )}
               <button
                 onClick={createNewProperty}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg shadow-amber-900/20"
               >
                 <Plus className="w-4 h-4" />
                 New Property
@@ -411,11 +436,11 @@ const [showPreview, setShowPreview] = useState(false);
           </div>
 
           {/* Tabs */}
-          <div className="flex items-center gap-2 mt-6 overflow-x-auto">
+          <div className="flex items-center gap-2 mt-8 overflow-x-auto border-t border-gray-200 dark:border-gray-700 pt-6">
             <button
               onClick={() => setEditingMode('details')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                editingMode === 'details' ? 'bg-gray-900 dark:bg-gray-700 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                editingMode === 'details' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
               }`}
             >
               <Home className="w-4 h-4" />
@@ -423,8 +448,8 @@ const [showPreview, setShowPreview] = useState(false);
             </button>
 <button
   onClick={() => setEditingMode('slideshow')}
-  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-    editingMode === 'slideshow' ? 'bg-gray-900 dark:bg-gray-700 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                editingMode === 'slideshow' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
   }`}
 >
   <Image className="w-4 h-4" />
@@ -433,7 +458,7 @@ const [showPreview, setShowPreview] = useState(false);
             <button
               onClick={() => setEditingMode('location')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                editingMode === 'location' ? 'bg-gray-900 dark:bg-gray-700 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                editingMode === 'location' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
               }`}
             >
               <MapPin className="w-4 h-4" />
@@ -442,7 +467,7 @@ const [showPreview, setShowPreview] = useState(false);
             <button
               onClick={() => setEditingMode('amenities')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                editingMode === 'amenities' ? 'bg-gray-900 dark:bg-gray-700 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                editingMode === 'amenities' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
               }`}
             >
               <ListChecks className="w-4 h-4" />
@@ -451,7 +476,7 @@ const [showPreview, setShowPreview] = useState(false);
             <button
               onClick={() => setEditingMode('hosting')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                editingMode === 'hosting' ? 'bg-gray-900 dark:bg-gray-700 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                editingMode === 'hosting' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
               }`}
             >
               <Cloud className="w-4 h-4" />
@@ -460,16 +485,25 @@ const [showPreview, setShowPreview] = useState(false);
             <button
               onClick={() => setEditingMode('content')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                editingMode === 'content' ? 'bg-gray-900 dark:bg-gray-700 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                editingMode === 'content' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
               }`}
             >
               <FileText className="w-4 h-4" />
               Content
             </button>
             <button
+              onClick={() => setEditingMode('contact')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                editingMode === 'contact' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+              }`}
+            >
+              <MapPin className="w-4 h-4" />
+              Contact Map
+            </button>
+            <button
               onClick={() => setEditingMode('homepage')}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                editingMode === 'homepage' ? 'bg-gray-900 dark:bg-gray-700 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                editingMode === 'homepage' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
               }`}
             >
               <Layout className="w-4 h-4" />
@@ -492,7 +526,7 @@ const [showPreview, setShowPreview] = useState(false);
         <div className="grid grid-cols-12 gap-8">
           {/* Sidebar */}
           <div className="col-span-3">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 border border-gray-200 dark:border-gray-700">
               <div className="space-y-2">
                 {properties.map((property) => (
                   <div
@@ -537,7 +571,7 @@ const [showPreview, setShowPreview] = useState(false);
           {/* Content Area */}
           <div className="col-span-9">
             {currentProperty && editingMode !== 'hosting' ? (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
                 {editingMode === 'details' && (
                   <div className="space-y-8">
                     <div className="grid grid-cols-2 gap-6">
@@ -1023,6 +1057,117 @@ const [showPreview, setShowPreview] = useState(false);
                 )}
 
 
+                {editingMode === 'contact' && (
+                  <div className="space-y-8">
+                    <h3 className="text-lg font-semibold mb-4">Contact Page Map Location</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">Set the location for the map on the Contact page.</p>
+                    
+                    <div className="grid grid-cols-2 gap-6 mb-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Latitude
+                        </label>
+                        <input
+                          type="number"
+                          value={contactMapLocation.lat}
+                          onChange={(e) => setContactMapLocation({
+                            ...contactMapLocation,
+                            lat: Number(e.target.value)
+                          })}
+                          step="0.000001"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Longitude
+                        </label>
+                        <input
+                          type="number"
+                          value={contactMapLocation.lng}
+                          onChange={(e) => setContactMapLocation({
+                            ...contactMapLocation,
+                            lng: Number(e.target.value)
+                          })}
+                          step="0.000001"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Location URL (Google Maps)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Paste Google Maps URL here"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
+                          onBlur={(e) => {
+                            try {
+                              // Try to extract coordinates from Google Maps URL
+                              const url = e.target.value;
+                              if (url && url.includes('@')) {
+                                const match = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+                                if (match && match.length === 3) {
+                                  const lat = parseFloat(match[1]);
+                                  const lng = parseFloat(match[2]);
+                                  if (!isNaN(lat) && !isNaN(lng)) {
+                                    setContactMapLocation({ lat, lng });
+                                    toast.success('Location updated from URL');
+                                  }
+                                }
+                              }
+                            } catch (error) {
+                              console.error('Error parsing Google Maps URL:', error);
+                            }
+                          }}
+                        />
+                        <button
+                          onClick={() => {
+                            // Open current location in Google Maps
+                            const url = `https://www.google.com/maps/search/?api=1&query=${contactMapLocation.lat},${contactMapLocation.lng}`;
+                            window.open(url, '_blank');
+                          }}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                          View in Maps
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Paste a Google Maps URL or enter coordinates directly
+                      </p>
+                    </div>
+                    
+                    <div className="h-[400px] rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
+                      <GoogleMap
+                        center={contactMapLocation}
+                        onCenterChange={(location) => {
+                          setContactMapLocation({
+                            lat: location.lat,
+                            lng: location.lng
+                          });
+                        }}
+                        readOnly={false}
+                        markerColor="amber"
+                      />
+                    </div>
+                    
+                    <div className="mt-6">
+                      <button
+                        onClick={() => {
+                          localStorage.setItem('contactMapLocation', JSON.stringify(contactMapLocation));
+                          toast.success('Contact map location saved successfully');
+                        }}
+                        className="px-6 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg shadow-amber-900/20"
+                      >
+                        Save Map Location
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
                 {editingMode === 'content' && (
                   <div className="space-y-8">
                     <div>
@@ -1251,7 +1396,7 @@ const [showPreview, setShowPreview] = useState(false);
                             localStorage.setItem('legalPages', JSON.stringify(legalPages));
                             toast.success('Content settings saved successfully');
                           }}
-                          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        className="px-6 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg shadow-amber-900/20"
                         >
                           Save Content Settings
                         </button>
@@ -1264,6 +1409,97 @@ const [showPreview, setShowPreview] = useState(false);
                   <div className="space-y-8">
                     <h3 className="text-lg font-semibold mb-4">Homepage Settings</h3>
                     <p className="text-gray-600 dark:text-gray-400 mb-6">Customize the images and text displayed on your homepage.</p>
+                    
+                    {/* Showcase Properties Section */}
+                    <div className="border-b pb-6 mb-6">
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="text-md font-medium">Showcase Properties</h4>
+                        <button
+                          onClick={() => setShowcaseMode(!showcaseMode)}
+                          className={`px-4 py-2 rounded-lg transition-colors ${
+                            showcaseMode 
+                              ? 'bg-blue-600 text-white' 
+                              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                          }`}
+                        >
+                          {showcaseMode ? 'Done Selecting' : 'Select Properties'}
+                        </button>
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        Choose up to 3 properties to feature in the homepage showcase section.
+                      </p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {properties
+                          .filter(p => p.published)
+                          .map(property => (
+                            <div 
+                              key={property.id}
+                              className={`relative rounded-lg border overflow-hidden ${
+                                showcasePropertyIds.includes(property.id) 
+                                  ? 'border-amber-500 dark:border-amber-400' 
+                                  : 'border-gray-200 dark:border-gray-700'
+                              }`}
+                            >
+                              <div className="relative h-40">
+                                <img 
+                                  src={property.image} 
+                                  alt={property.name}
+                                  className="w-full h-full object-cover"
+                                />
+                                {showcasePropertyIds.includes(property.id) && (
+                                  <div className="absolute top-2 right-2 bg-amber-500 text-white p-1 rounded-full">
+                                    <Star className="w-4 h-4" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="p-3">
+                                <h5 className="font-medium text-gray-900 dark:text-white truncate">{property.name}</h5>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{property.address}</p>
+                              </div>
+                      {showcaseMode && (
+                        <button
+                          onClick={() => {
+                            if (showcasePropertyIds.includes(property.id)) {
+                              // Remove from showcase
+                              setShowcaseProperties(showcasePropertyIds.filter(id => id !== property.id));
+                              toast.success(`Removed "${property.name}" from homepage showcase`);
+                            } else if (showcasePropertyIds.length < 3) {
+                              // Add to showcase (max 3)
+                              setShowcaseProperties([...showcasePropertyIds, property.id]);
+                              toast.success(`Added "${property.name}" to homepage showcase`);
+                            } else {
+                              // Replace the first one if already have 3
+                              const newShowcase = [...showcasePropertyIds];
+                              const removedProperty = properties.find(p => p.id === newShowcase[0]);
+                              newShowcase.shift(); // Remove first
+                              newShowcase.push(property.id); // Add new one
+                              setShowcaseProperties(newShowcase);
+                              toast.success(`Replaced "${removedProperty?.name || 'property'}" with "${property.name}" in homepage showcase`);
+                            }
+                          }}
+                                  className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 transition-opacity ${
+                                    showcasePropertyIds.includes(property.id) ? 'opacity-100' : 'opacity-0 hover:opacity-100'
+                                  }`}
+                                >
+                                  {showcasePropertyIds.includes(property.id) ? (
+                                    <span className="bg-red-600 text-white px-3 py-1 rounded-lg">Remove from Showcase</span>
+                                  ) : (
+                                    <span className="bg-green-600 text-white px-3 py-1 rounded-lg">Add to Showcase</span>
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                      </div>
+                      
+                      {properties.filter(p => p.published).length === 0 && (
+                        <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <p className="text-gray-500 dark:text-gray-400">No published properties available for showcase.</p>
+                          <p className="text-gray-500 dark:text-gray-400 mt-2">Publish properties to add them to the showcase.</p>
+                        </div>
+                      )}
+                    </div>
                     
                     <div className="border-b pb-6 mb-6">
                       <h4 className="text-md font-medium mb-4">Hero Section</h4>
@@ -1655,7 +1891,7 @@ const [showPreview, setShowPreview] = useState(false);
                         Preview Homepage
                       </button>
                   <button
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    className="px-6 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg shadow-amber-900/20"
                     onClick={() => {
                       // Actually save the homepage settings to localStorage or a state management system
                       localStorage.setItem('homepageSettings', JSON.stringify(homepageSettings));

@@ -45,11 +45,16 @@ export interface Property {
 
 interface PropertyStore {
   properties: Property[];
+  showcasePropertyIds: string[]; // Store IDs of properties to showcase on homepage
   setProperties: (properties: Property[]) => void;
   updateProperty: (id: string, property: Partial<Property>) => void;
   addProperty: (property: Property) => void;
   removeProperty: (id: string) => void;
   getProperty: (id: string) => Property | undefined;
+  
+  // Showcase properties operations
+  setShowcaseProperties: (propertyIds: string[]) => void;
+  getShowcaseProperties: () => Property[];
   
   // Image-specific operations
   addImages: (propertyId: string, newImages: string[]) => void;
@@ -59,6 +64,9 @@ interface PropertyStore {
   updateBrochureImages: (propertyId: string, brochureImages: string[]) => void;
   updateImageTags: (propertyId: string, imageUrl: string, tags: string[]) => void;
 }
+
+// Default showcase property IDs (first 3 properties)
+const initialShowcasePropertyIds: string[] = ["1", "2", "3"];
 
 const initialProperties: Property[] = [
   {
@@ -269,10 +277,35 @@ export const usePropertyStore = create<PropertyStore>()(
   persist(
     (set, get) => ({
       properties: initialProperties.map(ensureImageFields),
+      showcasePropertyIds: initialShowcasePropertyIds,
       
       setProperties: (properties) => set({ 
         properties: properties.map(ensureImageFields) 
       }),
+      
+      // Showcase properties operations
+      setShowcaseProperties: (propertyIds) => set({
+        showcasePropertyIds: propertyIds
+      }),
+      
+      getShowcaseProperties: () => {
+        const { properties, showcasePropertyIds } = get();
+        // Get properties by IDs, fallback to first 3 published properties if not found
+        const showcaseProperties = showcasePropertyIds
+          .map(id => properties.find(p => p.id === id))
+          .filter((p): p is Property => p !== undefined && p.published);
+          
+        // If we don't have 3 showcase properties, fill with other published properties
+        if (showcaseProperties.length < 3) {
+          const otherProperties = properties
+            .filter(p => p.published && !showcasePropertyIds.includes(p.id))
+            .slice(0, 3 - showcaseProperties.length);
+            
+          return [...showcaseProperties, ...otherProperties];
+        }
+        
+        return showcaseProperties;
+      },
       
       updateProperty: (id, updatedProperty) => {
         set((state) => ({

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type Language = 'en' | 'ar' | 'ro';
 type Currency = 'AED' | 'USD' | 'USDT' | 'BTC' | 'EUR' | 'GBP' | 'RON' | 'NGN';
@@ -17,8 +17,27 @@ interface GlobalProviderProps {
 }
 
 export function GlobalProvider({ children }: GlobalProviderProps) {
-  const [language, setLanguage] = useState<Language>('en');
-  const [currency, setCurrency] = useState<Currency>('AED');
+  // Initialize language from localStorage or default to 'en'
+  const [language, setLanguage] = useState<Language>(() => {
+    const savedLanguage = localStorage.getItem('language');
+    return (savedLanguage as Language) || 'en';
+  });
+  
+  // Initialize currency from localStorage or default to 'AED'
+  const [currency, setCurrency] = useState<Currency>(() => {
+    const savedCurrency = localStorage.getItem('currency');
+    return (savedCurrency as Currency) || 'AED';
+  });
+  
+  // Save language to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('language', language);
+  }, [language]);
+  
+  // Save currency to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('currency', currency);
+  }, [currency]);
 
   return (
     <GlobalContext.Provider value={{ language, setLanguage, currency, setCurrency }}>
