@@ -270,7 +270,7 @@ export function AboutUs() {
           <div className="inline-flex items-center mb-6">
             <Star className="w-5 h-5 text-amber-500 mr-3" />
             <h2 className="text-3xl font-light text-gray-900 dark:text-white">
-              {t('aboutUs')}
+              {translatedContent.aboutUs} <span className="font-medium text-amber-500 dark:text-amber-400">{translatedContent.us}</span>
             </h2>
           </div>
                 
@@ -322,7 +322,7 @@ export function AboutUs() {
             </div>
             
             <h2 className="text-3xl font-light text-white mb-4">
-              {t('visionAndMission')} <span className="font-medium text-amber-300">{t('mission')}</span>
+              {translatedContent.visionAndMission} <span className="font-medium text-amber-300">{translatedContent.mission}</span>
             </h2>
           </div>
 
@@ -363,7 +363,7 @@ export function AboutUs() {
             </div>
             
             <h2 className="text-3xl font-light text-gray-900 dark:text-white mb-4">
-              {t('our')} <span className="font-medium text-amber-500 dark:text-amber-400">{t('services')}</span>
+              {translatedContent.our} <span className="font-medium text-amber-500 dark:text-amber-400">{translatedContent.services}</span>
             </h2>
           </div>
 
@@ -409,7 +409,7 @@ export function AboutUs() {
             </div>
             
             <h2 className="text-3xl font-light text-white mb-4">
-              {t('core')} <span className="font-medium text-amber-300">{t('values')}</span>
+              {translatedContent.core} <span className="font-medium text-amber-300">{translatedContent.values}</span>
             </h2>
           </div>
 
@@ -450,7 +450,7 @@ export function AboutUs() {
             </div>
             
             <h2 className="text-3xl font-light text-gray-900 dark:text-white mb-4">
-              {t('our')} <span className="font-medium text-amber-500 dark:text-amber-400">{t('expertise')}</span>
+              {translatedContent.our} <span className="font-medium text-amber-500 dark:text-amber-400">{translatedContent.expertise}</span>
             </h2>
           </div>
 
@@ -487,7 +487,7 @@ export function AboutUs() {
             </div>
             
             <h2 className="text-3xl font-light text-white mb-4">
-              {t('whyChoose')} <span className="font-medium text-amber-300">{t('maiRealEstate')}</span>
+              {translatedContent.whyChoose} <span className="font-medium text-amber-300">{translatedContent.maiRealEstate}</span>
             </h2>
           </div>
 
