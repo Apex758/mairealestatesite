@@ -1,6 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Users, Award, Globe, Sparkles, Shield, Zap, Target, Heart, Briefcase } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useGlobal } from '../contexts/GlobalContext';
+import { translateText } from '../utils/translateUtils';
 
 // Company value interface
 interface CompanyValue {
@@ -17,8 +19,132 @@ interface Service {
 }
 
 export function AboutUs() {
+  const { language } = useGlobal();
   // Refs for parallax elements
   const parallaxRefs = useRef<(HTMLDivElement | null)[]>([]);
+  
+  // Translation state
+  const [translatedContent, setTranslatedContent] = useState({
+    // Hero section
+    legacyInTheMaking: 'A LEGACY IN THE MAKING',
+    findingYouPerfect: 'Finding you the perfect place to call home.',
+    
+    // About Us section
+    aboutUs: 'About',
+    us: 'Us',
+    aboutUsP1: 'MAI Real Estate L.L.C is not just a brokerage—it is an institution of trust, innovation, and excellence in Dubai\'s dynamic real estate landscape. As a fully licensed real estate powerhouse, we specialize in buying, selling, and leasing, ensuring an unparalleled customer experience.',
+    aboutUsP2: 'Trusted, tested, and approved, we transcend the conventional to become architects of opportunity, crafting legacies that stand the test of time. Rooted in unwavering integrity and fueled by visionary ambition, we redefine real estate with every transaction, delivering bespoke experiences and extraordinary results.',
+    
+    // Vision & Mission section
+    visionAndMission: 'Vision &',
+    mission: 'Mission',
+    ourVision: 'Our Vision',
+    visionText: 'To lead the global real estate frontier by shaping iconic, transformative properties that epitomize luxury and inspire legacy. With a relentless pursuit of excellence, we innovate, elevate, and curate exceptional spaces that transcend generations.',
+    ourMission: 'Our Mission',
+    missionText: 'Built upon the philosophy of "I AM," we do more than develop real estate—we craft a timeless narrative of purpose, ingenuity, and divine excellence. From redefining brokerage services in Dubai to pioneering real estate development on a global scale, MAI Real Estate is not just shaping spaces; we are sculpting the future.',
+    
+    // Services section
+    our: 'Our',
+    services: 'Services',
+    
+    // Core Values section
+    core: 'Core',
+    values: 'Values',
+    
+    // Expertise section
+    expertise: 'Expertise',
+    expertiseP1: 'At MAI Real Estate L.L.C, we are not simply navigating the real estate market—we are pioneering its evolution. Our leadership is forged by visionaries with expertise spanning technology, AI, blockchain, mathematics, and Dubai\'s high-stakes real estate arena. This fusion of disciplines grants us an unrivaled advantage, allowing us to approach every venture with precision, foresight, and strategic brilliance.',
+    expertiseP2: 'Our mastery of blockchain technology ensures transparency, security, and efficiency in all transactions, while our deep-rooted mathematical insights drive intelligent, data-backed investment decisions. Every deal, every property, every relationship we cultivate is a building block in reshaping the future of real estate.',
+    expertiseP3: 'With MAI Real Estate, you don\'t just invest—you create a legacy.',
+    
+    // Why Choose Us section
+    whyChoose: 'Why Choose',
+    maiRealEstate: 'MAI Real Estate?',
+    whyChooseP1: 'We are more than a brokerage; we are the architects of success and the custodians of legacy.',
+    whyChooseP2: 'With an unyielding commitment to integrity, innovation, and elite service, we transcend conventional real estate to deliver transformative experiences.',
+    whyChooseP3: 'Partner with us—not just for extraordinary results, but for a future that redefines what is possible.',
+    
+    // CTA section
+    readyToFind: 'Ready to find your',
+    dreamProperty: 'dream property',
+    ourTeamOfExperts: 'Our team of experts is ready to guide you through Dubai\'s luxury real estate market.',
+    browseProperties: 'Browse Properties',
+    contactUs: 'Contact Us'
+  });
+  
+  // Update translations when language changes
+  useEffect(() => {
+    const updateTranslations = async () => {
+      if (language === 'en') return;
+      
+      try {
+        const translated = {
+          // Hero section
+          legacyInTheMaking: await translateText('A LEGACY IN THE MAKING', language),
+          findingYouPerfect: await translateText('Finding you the perfect place to call home.', language),
+          
+          // About Us section
+          aboutUs: await translateText('About', language),
+          us: await translateText('Us', language),
+          aboutUsP1: await translateText('MAI Real Estate L.L.C is not just a brokerage—it is an institution of trust, innovation, and excellence in Dubai\'s dynamic real estate landscape. As a fully licensed real estate powerhouse, we specialize in buying, selling, and leasing, ensuring an unparalleled customer experience.', language),
+          aboutUsP2: await translateText('Trusted, tested, and approved, we transcend the conventional to become architects of opportunity, crafting legacies that stand the test of time. Rooted in unwavering integrity and fueled by visionary ambition, we redefine real estate with every transaction, delivering bespoke experiences and extraordinary results.', language),
+          
+          // Vision & Mission section
+          visionAndMission: await translateText('Vision &', language),
+          mission: await translateText('Mission', language),
+          ourVision: await translateText('Our Vision', language),
+          visionText: await translateText('To lead the global real estate frontier by shaping iconic, transformative properties that epitomize luxury and inspire legacy. With a relentless pursuit of excellence, we innovate, elevate, and curate exceptional spaces that transcend generations.', language),
+          ourMission: await translateText('Our Mission', language),
+          missionText: await translateText('Built upon the philosophy of "I AM," we do more than develop real estate—we craft a timeless narrative of purpose, ingenuity, and divine excellence. From redefining brokerage services in Dubai to pioneering real estate development on a global scale, MAI Real Estate is not just shaping spaces; we are sculpting the future.', language),
+          
+          // Services section
+          our: await translateText('Our', language),
+          services: await translateText('Services', language),
+          
+          // Core Values section
+          core: await translateText('Core', language),
+          values: await translateText('Values', language),
+          
+          // Expertise section
+          expertise: await translateText('Expertise', language),
+          expertiseP1: await translateText('At MAI Real Estate L.L.C, we are not simply navigating the real estate market—we are pioneering its evolution. Our leadership is forged by visionaries with expertise spanning technology, AI, blockchain, mathematics, and Dubai\'s high-stakes real estate arena. This fusion of disciplines grants us an unrivaled advantage, allowing us to approach every venture with precision, foresight, and strategic brilliance.', language),
+          expertiseP2: await translateText('Our mastery of blockchain technology ensures transparency, security, and efficiency in all transactions, while our deep-rooted mathematical insights drive intelligent, data-backed investment decisions. Every deal, every property, every relationship we cultivate is a building block in reshaping the future of real estate.', language),
+          expertiseP3: await translateText('With MAI Real Estate, you don\'t just invest—you create a legacy.', language),
+          
+          // Why Choose Us section
+          whyChoose: await translateText('Why Choose', language),
+          maiRealEstate: await translateText('MAI Real Estate?', language),
+          whyChooseP1: await translateText('We are more than a brokerage; we are the architects of success and the custodians of legacy.', language),
+          whyChooseP2: await translateText('With an unyielding commitment to integrity, innovation, and elite service, we transcend conventional real estate to deliver transformative experiences.', language),
+          whyChooseP3: await translateText('Partner with us—not just for extraordinary results, but for a future that redefines what is possible.', language),
+          
+          // CTA section
+          readyToFind: await translateText('Ready to find your', language),
+          dreamProperty: await translateText('dream property', language),
+          ourTeamOfExperts: await translateText('Our team of experts is ready to guide you through Dubai\'s luxury real estate market.', language),
+          browseProperties: await translateText('Browse Properties', language),
+          contactUs: await translateText('Contact Us', language)
+        };
+        
+        setTranslatedContent(translated);
+        
+        // Also translate company values and services
+        for (let i = 0; i < companyValues.length; i++) {
+          companyValues[i].title = await translateText(companyValues[i].title, language);
+          companyValues[i].description = await translateText(companyValues[i].description, language);
+        }
+        
+        for (let i = 0; i < services.length; i++) {
+          services[i].title = await translateText(services[i].title, language);
+          services[i].description = await translateText(services[i].description, language);
+        }
+      } catch (error) {
+        console.error('Error translating content:', error);
+      }
+    };
+    
+    updateTranslations();
+  }, [language]);
 
   // Handle parallax effect on scroll
   useEffect(() => {
@@ -92,7 +218,7 @@ export function AboutUs() {
   ];
 
   return (
-    <div className="pt-16 min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Hero Section */}
       <div className="relative h-[60vh] overflow-hidden">
         <div className="absolute inset-0 z-0">
@@ -106,10 +232,10 @@ export function AboutUs() {
 
         <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
           <h1 className="text-4xl md:text-6xl font-light text-white mb-6">
-            MAI REAL ESTATE L.L.C <span className="font-medium">– A LEGACY IN THE MAKING</span>
+            MAI REAL ESTATE L.L.C <span className="font-medium">– {translatedContent.legacyInTheMaking}</span>
           </h1>
           <p className="text-xl text-white/90 max-w-3xl">
-            Finding you the perfect place to call home.
+            {translatedContent.findingYouPerfect}
           </p>
         </div>
       </div>
@@ -119,18 +245,13 @@ export function AboutUs() {
         <div className="flex flex-col md:flex-row items-center gap-12">
           <div className="md:w-1/2">
             <h2 className="text-3xl font-light text-gray-900 dark:text-white mb-6">
-              About <span className="font-medium">Us</span>
+              {translatedContent.aboutUs} <span className="font-medium">{translatedContent.us}</span>
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              MAI Real Estate L.L.C is not just a brokerage—it is an institution of trust, innovation, and
-              excellence in Dubai's dynamic real estate landscape. As a fully licensed real estate powerhouse,
-              we specialize in buying, selling, and leasing, ensuring an unparalleled customer experience.
+              {translatedContent.aboutUsP1}
             </p>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Trusted, tested, and approved, we transcend the conventional to become architects of
-              opportunity, crafting legacies that stand the test of time. Rooted in unwavering integrity and
-              fueled by visionary ambition, we redefine real estate with every transaction, delivering bespoke
-              experiences and extraordinary results.
+              {translatedContent.aboutUsP2}
             </p>
           </div>
 
@@ -153,26 +274,21 @@ export function AboutUs() {
       <div className="bg-gray-50 dark:bg-gray-800 py-20">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-light text-gray-900 dark:text-white text-center mb-12">
-            Vision & <span className="font-medium">Mission</span>
+            {translatedContent.visionAndMission} <span className="font-medium">{translatedContent.mission}</span>
           </h2>
 
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-white dark:bg-gray-700 p-8 rounded-lg shadow-sm">
-              <h3 className="text-2xl font-medium text-gray-900 dark:text-white mb-4">Our Vision</h3>
+              <h3 className="text-2xl font-medium text-gray-900 dark:text-white mb-4">{translatedContent.ourVision}</h3>
               <p className="text-gray-600 dark:text-gray-400">
-                To lead the global real estate frontier by shaping iconic, transformative properties that epitomize
-                luxury and inspire legacy. With a relentless pursuit of excellence, we innovate, elevate, and
-                curate exceptional spaces that transcend generations.
+                {translatedContent.visionText}
               </p>
             </div>
 
             <div className="bg-white dark:bg-gray-700 p-8 rounded-lg shadow-sm">
-              <h3 className="text-2xl font-medium text-gray-900 dark:text-white mb-4">Our Mission</h3>
+              <h3 className="text-2xl font-medium text-gray-900 dark:text-white mb-4">{translatedContent.ourMission}</h3>
               <p className="text-gray-600 dark:text-gray-400">
-                Built upon the philosophy of "I AM," we do more than develop real estate—we craft a timeless
-                narrative of purpose, ingenuity, and divine excellence. From redefining brokerage services in
-                Dubai to pioneering real estate development on a global scale, MAI Real Estate is not just
-                shaping spaces; we are sculpting the future.
+                {translatedContent.missionText}
               </p>
             </div>
           </div>
@@ -182,7 +298,7 @@ export function AboutUs() {
       {/* Our Services Section */}
       <div className="max-w-6xl mx-auto px-4 py-20">
         <h2 className="text-3xl font-light text-gray-900 dark:text-white text-center mb-12">
-          Our <span className="font-medium">Services</span>
+          {translatedContent.our} <span className="font-medium">{translatedContent.services}</span>
         </h2>
 
         <div className="grid md:grid-cols-3 gap-8">
@@ -207,7 +323,7 @@ export function AboutUs() {
       <div className="bg-gray-50 dark:bg-gray-800 py-20">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-light text-gray-900 dark:text-white text-center mb-12">
-            Core <span className="font-medium">Values</span>
+            {translatedContent.core} <span className="font-medium">{translatedContent.values}</span>
           </h2>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -232,25 +348,18 @@ export function AboutUs() {
       {/* Our Expertise Section */}
       <div className="max-w-6xl mx-auto px-4 py-20">
         <h2 className="text-3xl font-light text-gray-900 dark:text-white text-center mb-12">
-          Our <span className="font-medium">Expertise</span>
+          {translatedContent.our} <span className="font-medium">{translatedContent.expertise}</span>
         </h2>
 
         <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-sm">
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            At MAI Real Estate L.L.C, we are not simply navigating the real estate market—we are
-            pioneering its evolution. Our leadership is forged by visionaries with expertise spanning
-            technology, AI, blockchain, mathematics, and Dubai's high-stakes real estate arena. This
-            fusion of disciplines grants us an unrivaled advantage, allowing us to approach every venture
-            with precision, foresight, and strategic brilliance.
+            {translatedContent.expertiseP1}
           </p>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Our mastery of blockchain technology ensures transparency, security, and efficiency in all
-            transactions, while our deep-rooted mathematical insights drive intelligent, data-backed
-            investment decisions. Every deal, every property, every relationship we cultivate is a building
-            block in reshaping the future of real estate.
+            {translatedContent.expertiseP2}
           </p>
           <p className="text-gray-600 dark:text-gray-400">
-            With MAI Real Estate, you don't just invest—you create a legacy.
+            {translatedContent.expertiseP3}
           </p>
         </div>
       </div>
@@ -259,19 +368,18 @@ export function AboutUs() {
       <div className="bg-gray-50 dark:bg-gray-800 py-20">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-light text-gray-900 dark:text-white text-center mb-12">
-            Why Choose <span className="font-medium">MAI Real Estate?</span>
+            {translatedContent.whyChoose} <span className="font-medium">{translatedContent.maiRealEstate}</span>
           </h2>
 
           <div className="bg-white dark:bg-gray-700 p-8 rounded-lg shadow-sm text-center">
             <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
-              We are more than a brokerage; we are the architects of success and the custodians of legacy.
+              {translatedContent.whyChooseP1}
             </p>
             <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
-              With an unyielding commitment to integrity, innovation, and elite service, we transcend
-              conventional real estate to deliver transformative experiences.
+              {translatedContent.whyChooseP2}
             </p>
             <p className="text-gray-600 dark:text-gray-400 text-lg">
-              Partner with us—not just for extraordinary results, but for a future that redefines what is possible.
+              {translatedContent.whyChooseP3}
             </p>
           </div>
         </div>
@@ -288,28 +396,32 @@ export function AboutUs() {
             alt="Dubai Skyline"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-blue-900/70 dark:bg-blue-900/80"></div>
+          {/* Adjusted overlay for light mode */}
+          <div className="absolute inset-0 bg-blue-200/70 dark:bg-blue-900/80"></div>
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-light text-white mb-6">
-            Ready to find your <span className="font-medium">dream property</span>?
+          {/* Adjusted text color for light mode */}
+          <h2 className="text-3xl font-light text-gray-900 dark:text-white mb-6">
+            {translatedContent.readyToFind} <span className="font-medium">{translatedContent.dreamProperty}</span>?
           </h2>
-          <p className="text-white/90 mb-8 max-w-2xl mx-auto">
-            Our team of experts is ready to guide you through Dubai's luxury real estate market.
+          {/* Adjusted text color for light mode */}
+          <p className="text-gray-700 dark:text-white/90 mb-8 max-w-2xl mx-auto">
+            {translatedContent.ourTeamOfExperts}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/listings"
               className="px-4 py-2 bg-white text-blue-900 font-medium rounded-lg hover:bg-gray-100 transition-colors"
             >
-              Browse Properties
+              {translatedContent.browseProperties}
             </Link>
+            {/* Adjusted border, text, and hover colors for light mode */}
             <Link
               to="/contact"
-              className="px-8 py-3 bg-transparent border-2 border-white text-white font-medium rounded-lg hover:bg-white/10 transition-colors"
+              className="px-8 py-3 bg-transparent border-2 border-blue-900 text-blue-900 dark:border-white dark:text-white font-medium rounded-lg hover:bg-blue-900/10 dark:hover:bg-white/10 transition-colors"
             >
-              Contact Us
+              {translatedContent.contactUs}
             </Link>
           </div>
         </div>

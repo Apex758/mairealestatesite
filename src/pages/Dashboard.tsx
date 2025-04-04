@@ -11,6 +11,8 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useUserStore } from '../stores/userStore';
+import { useGlobal } from '../contexts/GlobalContext';
+import { translateText } from '../utils/translateUtils';
 import { toast } from 'sonner';
 
 interface UserProperty {
@@ -30,8 +32,102 @@ interface RecentActivity {
 export function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { favorites, messages, getUnreadMessageCount } = useUserStore();
+  const { language } = useGlobal();
+  const { favorites, messages, getUnreadMessageCount, removeFromFavorites, markMessageAsRead } = useUserStore();
   const [activeTab, setActiveTab] = useState<'overview' | 'account'>('overview');
+  const [translatedContent, setTranslatedContent] = useState({
+    dashboard: 'My Dashboard',
+    overview: 'Overview',
+    accountSettings: 'Account Settings',
+    welcomeBack: 'Welcome back',
+    manageYourFavorites: 'Manage your favorites, messages, and account settings',
+    myFavorites: 'My Favorites',
+    viewAll: 'View All',
+    noFavorites: 'No favorite properties yet',
+    browseProperties: 'Browse Properties',
+    newestFirst: 'Newest First',
+    priceHighToLow: 'Price: High to Low',
+    priceLowToHigh: 'Price: Low to High',
+    beds: 'beds',
+    baths: 'baths',
+    view: 'View',
+    remove: 'Remove',
+    recentMessages: 'Recent Messages',
+    noMessages: 'No messages yet',
+    reply: 'Reply',
+    markAsRead: 'Mark as Read',
+    quickActions: 'Quick Actions',
+    recentActivities: 'Recent Activities',
+    noActivities: 'No recent activities',
+    fullName: 'Full Name',
+    emailAddress: 'Email Address',
+    phoneNumber: 'Phone Number',
+    notificationPreferences: 'Notification Preferences',
+    emailNotifications: 'Email Notifications',
+    emailNotificationsDesc: 'Receive updates about your account via email',
+    appNotifications: 'App Notifications',
+    appNotificationsDesc: 'Receive in-app notifications about your activity',
+    marketingCommunications: 'Marketing Communications',
+    marketingCommunicationsDesc: 'Receive marketing emails about new properties and offers',
+    saveChanges: 'Save Changes',
+    successfullyLoggedOut: 'Successfully logged out',
+    accountSettingsSaved: 'Account settings saved successfully',
+    logout: 'Logout'
+  });
+
+  // Translate content when language changes
+  useEffect(() => {
+    const translateContent = async () => {
+      if (language === 'en') return;
+
+      try {
+        const translated = {
+          dashboard: await translateText('My Dashboard', language),
+          overview: await translateText('Overview', language),
+          accountSettings: await translateText('Account Settings', language),
+          welcomeBack: await translateText('Welcome back', language),
+          manageYourFavorites: await translateText('Manage your favorites, messages, and account settings', language),
+          myFavorites: await translateText('My Favorites', language),
+          viewAll: await translateText('View All', language),
+          noFavorites: await translateText('No favorite properties yet', language),
+          browseProperties: await translateText('Browse Properties', language),
+          newestFirst: await translateText('Newest First', language),
+          priceHighToLow: await translateText('Price: High to Low', language),
+          priceLowToHigh: await translateText('Price: Low to High', language),
+          beds: await translateText('beds', language),
+          baths: await translateText('baths', language),
+          view: await translateText('View', language),
+          remove: await translateText('Remove', language),
+          recentMessages: await translateText('Recent Messages', language),
+          noMessages: await translateText('No messages yet', language),
+          reply: await translateText('Reply', language),
+          markAsRead: await translateText('Mark as Read', language),
+          quickActions: await translateText('Quick Actions', language),
+          recentActivities: await translateText('Recent Activities', language),
+          noActivities: await translateText('No recent activities', language),
+          fullName: await translateText('Full Name', language),
+          emailAddress: await translateText('Email Address', language),
+          phoneNumber: await translateText('Phone Number', language),
+          notificationPreferences: await translateText('Notification Preferences', language),
+          emailNotifications: await translateText('Email Notifications', language),
+          emailNotificationsDesc: await translateText('Receive updates about your account via email', language),
+          appNotifications: await translateText('App Notifications', language),
+          appNotificationsDesc: await translateText('Receive in-app notifications about your activity', language),
+          marketingCommunications: await translateText('Marketing Communications', language),
+          marketingCommunicationsDesc: await translateText('Receive marketing emails about new properties and offers', language),
+          saveChanges: await translateText('Save Changes', language),
+          successfullyLoggedOut: await translateText('Successfully logged out', language),
+          accountSettingsSaved: await translateText('Account settings saved successfully', language),
+          logout: await translateText('Logout', language)
+        };
+        setTranslatedContent(translated);
+      } catch (error) {
+        console.error('Error translating content:', error);
+      }
+    };
+
+    translateContent();
+  }, [language]);
   const [userProperties] = useState<UserProperty[]>([
     {
       id: 'prop1',
@@ -108,7 +204,7 @@ export function Dashboard() {
   
   const handleLogout = () => {
     logout();
-    toast.success('Successfully logged out');
+    toast.success(translatedContent.successfullyLoggedOut);
     navigate('/');
   };
   
@@ -131,7 +227,7 @@ export function Dashboard() {
   
   const saveSettings = () => {
     // In a real app, this would make an API call to save the settings
-    toast.success('Account settings saved successfully');
+    toast.success(translatedContent.accountSettingsSaved);
   };
   
   // Add a new activity when the component mounts
@@ -165,10 +261,10 @@ export function Dashboard() {
           </div>
           <div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Welcome back, {user?.name || 'User'}
+              {translatedContent.welcomeBack}, {user?.name || 'User'}
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
-              Manage your favorites, messages, and account settings
+              {translatedContent.manageYourFavorites}
             </p>
           </div>
         </div>
@@ -178,101 +274,167 @@ export function Dashboard() {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-            My Favorites
+            {translatedContent.myFavorites}
+          </h3>
+          <div className="flex items-center gap-2">
+            {favorites.length > 0 && (
+              <select 
+                className="text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg px-2 py-1"
+                defaultValue="newest"
+              >
+                <option value="newest">{translatedContent.newestFirst}</option>
+                <option value="price-high">{translatedContent.priceHighToLow}</option>
+                <option value="price-low">{translatedContent.priceLowToHigh}</option>
+              </select>
+            )}
+            <Link 
+              to="/favorites" 
+              className="text-blue-600 hover:underline"
+            >
+              {translatedContent.viewAll}
+            </Link>
+          </div>
+        </div>
+
+        {favorites.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-600 dark:text-gray-400">
+              {translatedContent.noFavorites}
+            </p>
+            <Link 
+              to="/listings" 
+              className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              {translatedContent.browseProperties}
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {favorites.slice(0, 3).map((property) => (
+              <div 
+                key={property.id} 
+                className="flex items-center gap-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+              >
+                <img 
+                  src={property.image} 
+                  alt={property.name} 
+                  className="w-20 h-20 object-cover rounded-lg"
+                />
+                <div className="flex-1">
+                  <h4 className="text-md font-medium text-gray-900 dark:text-white">
+                    {property.name}
+                  </h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                    {property.address}
+                  </p>
+                  <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                    <span>{property.beds} beds</span>
+                    <span>{property.baths} baths</span>
+                    <span>{property.sqft} sqft</span>
+                    <span className="font-semibold text-blue-600">
+                      {new Intl.NumberFormat('en-AE', { 
+                        style: 'currency', 
+                        currency: property.currency 
+                      }).format(property.price)}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Link 
+                    to={`/property/${property.id}`}
+                    className="text-blue-600 hover:underline text-sm"
+                  >
+                    View
+                  </Link>
+                  <button
+                    onClick={() => removeFromFavorites(property.id)}
+                    className="text-red-500 hover:underline text-sm"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Messages Preview */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Recent Messages
           </h3>
           <Link 
-            to="/favorites" 
+            to="/messages" 
             className="text-blue-600 hover:underline"
           >
             View All
           </Link>
         </div>
 
-        {favorites.length === 0 ? (
+        {messages.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-600 dark:text-gray-400">
-              No favorite properties yet
+              No messages yet
             </p>
-            <Link 
-              to="/listings" 
-              className="inline-block mt-4 text-blue-600 hover:underline"
-            >
-              Browse Properties
-            </Link>
           </div>
         ) : (
           <div className="space-y-4">
-            {favorites.slice(0, 2).map((property) => (
+            {messages.slice(0, 3).map((message) => (
               <div 
-                key={property.id} 
-                className="flex items-center gap-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg"
+                key={message.id} 
+                className={`flex items-start gap-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg ${!message.read ? 'border-l-4 border-blue-500' : ''}`}
               >
-                <img 
-                  src={property.image} 
-                  alt={property.name} 
-                  className="w-16 h-16 object-cover rounded-lg"
-                />
-                <div className="flex-1">
-                  <h4 className="text-md font-medium text-gray-900 dark:text-white">
-                    {property.name}
-                  </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {property.address}
-                  </p>
+                <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center flex-shrink-0">
+                  <User className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                 </div>
-                <Link 
-                  to={`/property/${property.id}`}
-                  className="text-blue-600 hover:underline"
-                >
-                  View
-                </Link>
+                <div className="flex-1">
+                  <div className="flex justify-between items-start mb-1">
+                    <h4 className="font-medium text-gray-900 dark:text-white">
+                      {message.sender}
+                    </h4>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {message.timestamp.toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="text-gray-700 dark:text-gray-300 text-sm mb-2">
+                    {message.content.length > 60 
+                      ? `${message.content.substring(0, 60)}...` 
+                      : message.content}
+                  </p>
+                  <div className="flex gap-2">
+                    <Link 
+                      to="/messages" 
+                      className="text-xs px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50"
+                    >
+                      Reply
+                    </Link>
+                    {!message.read && (
+                      <button 
+                        onClick={() => markMessageAsRead(message.id)}
+                        className="text-xs px-3 py-1 bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-gray-500"
+                      >
+                        Mark as Read
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Recent Activities */}
+      {/* Recent Activities & Quick Actions */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Recent Activities
+            Quick Actions
           </h3>
         </div>
-
-        {recentActivities.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-600 dark:text-gray-400">
-              No recent activities
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {recentActivities.map((activity, index) => (
-              <div 
-                key={index} 
-                className="flex items-center gap-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg"
-              >
-                <div className="flex-1">
-                  <p className="text-gray-900 dark:text-white">
-                    {activity.details}
-                  </p>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {activity.timestamp.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-          Quick Actions
-        </h3>
-        <div className="grid grid-cols-2 gap-4">
+        
+        <div className="grid grid-cols-2 gap-4 mb-6">
           <Link 
             to="/favorites" 
             className="flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-700 p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 relative"
@@ -320,6 +482,45 @@ export function Dashboard() {
             </span>
           </Link>
         </div>
+        
+        <h4 className="font-medium text-gray-900 dark:text-white mb-4">
+          Recent Activities
+        </h4>
+        
+        {recentActivities.length === 0 ? (
+          <div className="text-center py-4">
+            <p className="text-gray-600 dark:text-gray-400">
+              No recent activities
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {recentActivities.slice(0, 3).map((activity, index) => (
+              <div 
+                key={index} 
+                className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg"
+              >
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 
+                  ${activity.type === 'message' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : 
+                    activity.type === 'favorite' ? 'bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-400' : 
+                    'bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400'}`}
+                >
+                  {activity.type === 'message' ? <MessageCircle className="w-4 h-4" /> : 
+                   activity.type === 'favorite' ? <Heart className="w-4 h-4" /> : 
+                   <Home className="w-4 h-4" />}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-gray-900 dark:text-white">
+                    {activity.details}
+                  </p>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                    {activity.timestamp.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -452,7 +653,7 @@ export function Dashboard() {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <Home className="w-8 h-8 text-gray-600 dark:text-gray-300" />
-            <h1 className="text-3xl font-light text-gray-900 dark:text-white">My Dashboard</h1>
+            <h1 className="text-3xl font-light text-gray-900 dark:text-white">{translatedContent.dashboard}</h1>
           </div>
           
           <div className="flex items-center gap-4">
@@ -464,7 +665,7 @@ export function Dashboard() {
                   : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
               }`}
             >
-              Overview
+              {translatedContent.overview}
             </button>
             <button 
               onClick={() => setActiveTab('account')}
@@ -474,7 +675,7 @@ export function Dashboard() {
                   : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
               }`}
             >
-              Account Settings
+              {translatedContent.accountSettings}
             </button>
           </div>
         </div>

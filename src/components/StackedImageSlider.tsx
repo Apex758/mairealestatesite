@@ -23,19 +23,10 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
     isAnimating.current = true;
 
     const animDuration = isFast ? 200 : 600; // FAST_ANIM_DURATION : ANIM_DURATION
-    
-    currentImages.forEach(img => {
-      img.style.transition = `transform ${animDuration}ms cubic-bezier(0.4, 0, 0.2, 1),
-                            opacity ${animDuration}ms cubic-bezier(0.4, 0, 0.2, 1),
-                            filter ${animDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
-    });
 
-    // Force a reflow (variable intentionally unused)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const reflow = slider.offsetHeight;
-
+    // Apply animation class to outgoing image
     currentImages[4].classList.add('evaporate');
-
+    // Set target styles for transitioning images (transition is handled by CSS)
     currentImages[0].style.transform = 'translateX(75px)';
     currentImages[0].style.opacity = '0.2';
     currentImages[0].style.filter = 'blur(0.75px)';
@@ -53,10 +44,8 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
     currentImages[3].style.filter = 'blur(0)';
 
     setTimeout(() => {
-      currentImages.forEach(img => {
-        img.style.transition = '';
-        img.classList.remove('evaporate');
-      });
+      // Remove animation class after transition
+      currentImages[4].classList.remove('evaporate');
 
       // If a specific target index is provided
       if (targetIndex !== undefined) {
@@ -122,12 +111,13 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
 
       resetPositions();
 
-      const newImages = slider.querySelectorAll('img');
+      const newImages = Array.from(slider.querySelectorAll('img'));
+      // Apply fade-in animation class to the new incoming image (at index 0 after reset)
       newImages[0].classList.add(isFast ? 'fast-fade-in' : 'fade-in');
 
       setTimeout(() => {
-        newImages[0].className = '';
-        newImages[0].style.animation = '';
+        // Remove fade-in class after animation
+        newImages[0].classList.remove(isFast ? 'fast-fade-in' : 'fade-in');
         isAnimating.current = false;
 
         // Update active image index
@@ -271,6 +261,37 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
         transition: opacity 0.3s ease;
         pointer-events: none;
       }
+
+      /* Define Animations */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateX(115px); /* Start further back */ }
+        to { opacity: 0; transform: translateX(95px); } /* End at the initial hidden position */
+      }
+
+      .fade-in {
+        animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+
+      @keyframes fastFadeIn {
+        from { opacity: 0; transform: translateX(115px); }
+        to { opacity: 0; transform: translateX(95px); }
+      }
+
+      .fast-fade-in {
+        animation: fastFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+
+      @keyframes evaporate {
+         0% { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
+         100% { transform: translateX(-50px) scale(0.9); opacity: 0; filter: blur(5px); }
+      }
+
+      .evaporate {
+        animation: evaporate 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        /* Ensure it stays on top during animation */
+        z-index: 6 !important; 
+      }
+      /* End Animations */
 
       .enlarged-image-overlay.visible {
         opacity: 1;
