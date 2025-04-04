@@ -337,28 +337,36 @@ export function Home() {
               <div className="h-px w-12 bg-amber-500"></div>
             </div>
             
-            <h2 className="text-3xl font-light text-gray-900 dark:text-white mb-4">
-              Our <span className="font-medium text-amber-500 dark:text-amber-400">Achievements</span>
-            </h2>
+            <div className="mb-4">
+              <h2 className="text-3xl font-light text-gray-900 dark:text-white">
+                Dubai Real Estate <span className="font-medium text-amber-500 dark:text-amber-400">Achievements as of 2024</span>
+              </h2>
+              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Data source: <a href="https://difc.realkeyper.com/" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">difc.realkeyper.com</a>
+              </div>
+            </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <div className={`bg-white dark:bg-gray-800 p-10 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 text-center transition-all duration-1000 delay-300 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-              <div className="text-5xl font-light mb-4 text-amber-500">500+</div> 
+              <div className="text-5xl font-light mb-4 text-amber-500">1,973</div> 
               <div className="h-px w-12 bg-amber-500 mx-auto mb-4"></div>
-              <div className="text-xl text-gray-700 dark:text-gray-300">{t('dubaiProperties')}</div> 
+              <div className="text-xl text-gray-700 dark:text-gray-300">{t('averageSalePricePerSqft')}</div>
+              <div className="text-lg text-amber-600 mt-2">AED</div>
             </div>
             
             <div className={`bg-white dark:bg-gray-800 p-10 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 text-center transition-all duration-1000 delay-500 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-              <div className="text-5xl font-light mb-4 text-amber-500">$2B+</div> 
+              <div className="text-5xl font-light mb-4 text-amber-500">2.8M+</div> 
               <div className="h-px w-12 bg-amber-500 mx-auto mb-4"></div>
-              <div className="text-xl text-gray-700 dark:text-gray-300">{t('cryptoTransactions')}</div> 
+              <div className="text-xl text-gray-700 dark:text-gray-300">{t('averageSalePrice')}</div>
+              <div className="text-lg text-amber-600 mt-2">AED</div>
             </div>
             
             <div className={`bg-white dark:bg-gray-800 p-10 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 text-center transition-all duration-1000 delay-700 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-              <div className="text-5xl font-light mb-4 text-amber-500">100%</div> 
+              <div className="text-5xl font-light mb-4 text-amber-500">167K+</div> 
               <div className="h-px w-12 bg-amber-500 mx-auto mb-4"></div>
-              <div className="text-xl text-gray-700 dark:text-gray-300">{t('secureEscrow')}</div> 
+              <div className="text-xl text-gray-700 dark:text-gray-300">{t('averageAnnualRent')}</div>
+              <div className="text-lg text-amber-600 mt-2">AED</div>
             </div>
           </div>
         </div>

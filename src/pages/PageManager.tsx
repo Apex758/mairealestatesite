@@ -220,8 +220,8 @@ export function PageManager() {
   const [contactMapLocation, setContactMapLocation] = useState(() => {
     const savedLocation = localStorage.getItem('contactMapLocation');
     return savedLocation ? JSON.parse(savedLocation) : {
-      lat: 25.2048,
-      lng: 55.2708
+      lat: 24.9894783,
+      lng: 55.1651323
     };
   });
   // Initialize hosting config from localStorage or use defaults

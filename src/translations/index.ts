@@ -87,6 +87,9 @@ export type TranslationKey =
   | 'dubaiProperties'
   | 'cryptoTransactions'
   | 'secureEscrow'
+  | 'averageSalePricePerSqft'
+  | 'averageSalePrice'
+  | 'averageAnnualRent'
   // Footer
   | 'findingYouPerfect'
   | 'quickLinks'
@@ -189,6 +192,9 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
     dubaiProperties: 'Dubai Properties',
     cryptoTransactions: 'Crypto Transactions',
     secureEscrow: 'Secure Escrow',
+    averageSalePricePerSqft: 'Average Sale Price Per Sqft',
+    averageSalePrice: 'Average Sale Price',
+    averageAnnualRent: 'Average Annual Rent',
     // Footer
     findingYouPerfect: 'Finding you the perfect place to call home.',
     quickLinks: 'Quick Links',
@@ -290,6 +296,9 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
     dubaiProperties: 'عقارات دبي',
     cryptoTransactions: 'معاملات العملات المشفرة',
     secureEscrow: 'ضمان آمن',
+    averageSalePricePerSqft: 'متوسط سعر البيع للقدم المربع',
+    averageSalePrice: 'متوسط سعر البيع',
+    averageAnnualRent: 'متوسط الإيجار السنوي',
     // Footer
     findingYouPerfect: 'نجد لك المكان المثالي لتسميه منزلك.',
     quickLinks: 'روابط سريعة',
@@ -391,6 +400,9 @@ export const translations: Record<string, Record<TranslationKey, string>> = {
     dubaiProperties: 'Proprietăți Dubai',
     cryptoTransactions: 'Tranzacții Crypto',
     secureEscrow: 'Escrow Securizat',
+    averageSalePricePerSqft: 'Preț Mediu de Vânzare pe Mp',
+    averageSalePrice: 'Preț Mediu de Vânzare',
+    averageAnnualRent: 'Chirie Anuală Medie',
     // Footer
     findingYouPerfect: 'Îți găsim locul perfect pe care să-l numești acasă.',
     quickLinks: 'Linkuri Rapide',
