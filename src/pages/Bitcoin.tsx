@@ -155,7 +155,6 @@ export function Bitcoin() {
       <div className="py-32 bg-gradient-to-br from-gray-900 to-gray-800">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h2 className="text-4xl font-light mb-8 text-white">{translatedContent.ctaTitle}</h2>
-          <h2 className="text-4xl font-light mb-8 text-white">{translatedContent.ctaTitle}</h2>
           <Link
             to="/contact"
             className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-4 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all group"
@@ -163,6 +162,24 @@ export function Bitcoin() {
             {translatedContent.contactSpecialists}
             <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </Link>
+        </div>
+      </div>
+
+      {/* Payment Disclaimer */}
+      <div className="bg-gray-50 dark:bg-gray-800 py-16">
+        <div className="max-w-4xl mx-auto px-4">
+          <h2 className="text-2xl font-medium mb-6 text-center dark:text-white">Payment Disclaimer – MAI Real Estate L.L.C</h2>
+          <div className="bg-white dark:bg-gray-700 p-8 rounded-xl shadow-sm">
+            <p className="text-gray-700 dark:text-gray-300 mb-4">
+              At <span className="font-medium">MAI Real Estate L.L.C</span>, we strictly adhere to UAE real estate laws and regulations. We do <span className="font-medium">not</span> accept, collect, or receive payments from clients on behalf of any developer, as per <span className="italic">Law No. (8) of 2007 concerning Escrow Accounts for Real Estate Development in Dubai</span>.
+            </p>
+            <p className="text-gray-700 dark:text-gray-300 mb-4">
+              All payments related to property purchases must be made <span className="italic">directly to the developer's designated escrow account</span> as mandated by the <span className="italic">Dubai Land Department (DLD)</span> and relevant UAE authorities.
+            </p>
+            <p className="text-gray-700 dark:text-gray-300">
+              M A I Real Estate operates solely as a licensed brokerage facilitating transactions, ensuring transparency, and safeguarding your investments.
+            </p>
+          </div>
         </div>
       </div>
     </div>

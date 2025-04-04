@@ -5,138 +5,93 @@ interface StackedImageSliderProps {
 }
 
 export function StackedImageSlider({ images }: StackedImageSliderProps) {
+  // State to track the current active image index
+  const [activeIndex, setActiveIndex] = useState(0);
+  // State for enlarged image view
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
+  
+  // Refs
   const sliderRef = useRef<HTMLDivElement | null>(null);
   const isAnimating = useRef(false);
   const intervalRef = useRef<number>();
-  const targetImageSrc = useRef<string | null>(null);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
-
-  // Function declaration for moveStack to avoid reference before definition
-  const moveStack = (isFast: boolean, targetIndex?: number) => {
-    const slider = sliderRef.current;
-    if (!slider || isAnimating.current) return;
+  
+  // Calculate visible indices based on active index
+  const getVisibleIndices = (currentIndex: number) => {
+    const totalImages = images.length;
+    if (totalImages === 0) return [];
     
-    const currentImages = Array.from(slider.querySelectorAll('img'));
-    if (currentImages.length < 5) return;
+    // Always show 4 images
+    return [
+      currentIndex % totalImages,
+      (currentIndex + 1) % totalImages,
+      (currentIndex + 2) % totalImages,
+      (currentIndex + 3) % totalImages
+    ];
+  };
+  
+  // Get visible images array
+  const getVisibleImages = () => {
+    if (images.length === 0) return [];
+    return getVisibleIndices(activeIndex).map(index => images[index]);
+  };
+  
+  // Function to advance the slideshow
+  const advanceSlideshow = (instant = false) => {
+    if (isAnimating.current || images.length === 0) return;
     
     isAnimating.current = true;
-
-    const animDuration = isFast ? 200 : 600; // FAST_ANIM_DURATION : ANIM_DURATION
-
-    // Apply animation class to outgoing image
-    currentImages[4].classList.add('evaporate');
-    // Set target styles for transitioning images (transition is handled by CSS)
-    currentImages[0].style.transform = 'translateX(75px)';
-    currentImages[0].style.opacity = '0.2';
-    currentImages[0].style.filter = 'blur(0.75px)';
-
-    currentImages[1].style.transform = 'translateX(55px)';
-    currentImages[1].style.opacity = '0.4';
-    currentImages[1].style.filter = 'blur(0.5px)';
-
-    currentImages[2].style.transform = 'translateX(35px)';
-    currentImages[2].style.opacity = '0.7';
-    currentImages[2].style.filter = 'blur(0.25px)';
-
-    currentImages[3].style.transform = 'translateX(0)';
-    currentImages[3].style.opacity = '1';
-    currentImages[3].style.filter = 'blur(0)';
-
-    setTimeout(() => {
-      // Remove animation class after transition
-      currentImages[4].classList.remove('evaporate');
-
-      // If a specific target index is provided
-      if (targetIndex !== undefined) {
-        // Rotate images until the target image is on top
-        while (currentImages[4].getAttribute('src') !== images[targetIndex]) {
-          slider.appendChild(currentImages[0]);
-          const newCurrentImages = Array.from(slider.querySelectorAll('img'));
-          currentImages.length = 0;
-          currentImages.push(...newCurrentImages);
-        }
-      } else {
-        slider.appendChild(currentImages[0]);
+    const slider = sliderRef.current;
+    if (!slider) return;
+    
+    // Get all current image elements
+    const imageElements = Array.from(slider.querySelectorAll('.slide-image'));
+    if (imageElements.length !== 4) return;
+    
+    // Apply exit animation to the first image
+    imageElements[0].classList.add(instant ? 'exit-instant' : 'exit');
+    
+    // Apply transition animations to the other images
+    imageElements.forEach((img, i) => {
+      if (i > 0) {
+        img.classList.add(instant ? 'advance-instant' : 'advance');
       }
-
-      // Reset positions
-      const resetPositions = () => {
-        const newCurrentImages = Array.from(slider.querySelectorAll('img'));
-        newCurrentImages.forEach((img, index) => {
-          img.style.transition = '';
-          img.style.animation = '';
-          img.className = '';
-  
-          if (index === 0) {
-            img.style.transform = 'translateX(95px)';
-            img.style.opacity = '0';
-            img.style.zIndex = '1';
-            img.style.filter = 'blur(1px)';
-            img.style.cursor = 'pointer';
-          } else if (index === 1) {
-            img.style.transform = 'translateX(75px)';
-            img.style.opacity = '0.2';
-            img.style.zIndex = '2';
-            img.style.filter = 'blur(0.75px)';
-            img.style.cursor = 'pointer';
-          } else if (index === 2) {
-            img.style.transform = 'translateX(55px)';
-            img.style.opacity = '0.4';
-            img.style.zIndex = '3';
-            img.style.filter = 'blur(0.5px)';
-            img.style.cursor = 'pointer';
-          } else if (index === 3) {
-            img.style.transform = 'translateX(35px)';
-            img.style.opacity = '0.7';
-            img.style.zIndex = '4';
-            img.style.filter = 'blur(0.25px)';
-            img.style.cursor = 'pointer';
-          } else if (index === 4) {
-            img.style.transform = 'translateX(0)';
-            img.style.opacity = '1';
-            img.style.zIndex = '5';
-            img.style.filter = 'blur(0)';
-            img.style.cursor = 'pointer';
-          }
-  
-          // Add click event to top image for enlargement
-          if (index === 4) {
-            img.addEventListener('click', () => {
-              handleEnlargeImage(img.getAttribute('src') || '');
-            });
-          }
-        });
-      };
-
-      resetPositions();
-
-      const newImages = Array.from(slider.querySelectorAll('img'));
-      // Apply fade-in animation class to the new incoming image (at index 0 after reset)
-      newImages[0].classList.add(isFast ? 'fast-fade-in' : 'fade-in');
-
-      setTimeout(() => {
-        // Remove fade-in class after animation
-        newImages[0].classList.remove(isFast ? 'fast-fade-in' : 'fade-in');
-        isAnimating.current = false;
-
-        // Update active image index
-        const topImageSrc = newImages[4].getAttribute('src');
-        const index = images.findIndex(img => img === topImageSrc);
-        setActiveImageIndex(index);
-
-        if (isFast) {
-          const currentTopImg = slider.querySelectorAll('img')[4];
-          if (currentTopImg.getAttribute('src') === targetImageSrc.current) {
-            clearInterval(intervalRef.current);
-            intervalRef.current = window.setInterval(() => moveStack(false), 4000); // NORMAL_INTERVAL
-          }
-        }
-      }, isFast ? 200 : 600); // FAST_ANIM_DURATION : ANIM_DURATION
-    }, animDuration);
+    });
+    
+    // After animation completes
+    setTimeout(() => {
+      // Update active index
+      setActiveIndex((prevIndex) => (prevIndex + 1) % images.length);
+      isAnimating.current = false;
+    }, instant ? 50 : 600);
   };
-
-  // Pause and resume slider functionality
+  
+  // Handle thumbnail click
+  const handleThumbnailClick = (index: number) => {
+    if (isAnimating.current || index === activeIndex) return;
+    
+    // Stop auto rotation
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    
+    // Calculate how many steps to advance
+    const stepsToAdvance = (index - activeIndex + images.length) % images.length;
+    
+    // If it's just the next image, do a normal advance
+    if (stepsToAdvance === 1) {
+      advanceSlideshow();
+    } else {
+      // For larger jumps, set the index directly and rebuild the slider
+      setActiveIndex(index);
+    }
+    
+    // Restart auto rotation after a delay
+    setTimeout(() => {
+      intervalRef.current = window.setInterval(() => advanceSlideshow(), 4000);
+    }, 1000);
+  };
+  
+  // Handle image enlargement
   const handleEnlargeImage = (imageSrc: string) => {
     // Pause auto-rotation
     if (intervalRef.current) {
@@ -144,81 +99,115 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
     }
     setEnlargedImage(imageSrc);
   };
-
+  
+  // Handle closing enlarged image
   const handleCloseEnlarged = () => {
     // Restart auto-rotation
     intervalRef.current = window.setInterval(() => {
-      moveStack(false);
+      advanceSlideshow();
     }, 4000);
     setEnlargedImage(null);
   };
-
+  
+  // Initialize and clean up
   useEffect(() => {
+    // Add CSS styles
     const styleEl = document.createElement('style');
     styleEl.textContent = `
-      .stacked-slider {
+      .slider-container {
         position: relative;
         width: 100%;
         height: 726px;
-        margin: 0 auto;
         overflow: hidden;
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
       }
-
-      .stacked-slider img {
+      
+      .slide-image {
         position: absolute;
         height: 726px;
-        left: 0;
         width: 1089px;
         border-radius: 4px;
         box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.15);
         object-fit: cover;
-        will-change: transform, opacity, filter;
-        backface-visibility: hidden;
-        transform-style: preserve-3d;
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
-        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                    opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                    filter 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       }
-
-      .stacked-slider img:nth-child(1) {
-        transform: translateX(95px);
-        opacity: 0;
-        z-index: 1;
-        filter: blur(1px);
-      }
-
-      .stacked-slider img:nth-child(2) {
-        transform: translateX(75px);
-        opacity: 0.2;
-        z-index: 2;
-        filter: blur(0.75px);
-      }
-
-      .stacked-slider img:nth-child(3) {
-        transform: translateX(55px);
-        opacity: 0.4;
-        z-index: 3;
-        filter: blur(0.5px);
-      }
-
-      .stacked-slider img:nth-child(4) {
-        transform: translateX(35px);
-        opacity: 0.7;
-        z-index: 4;
-        filter: blur(0.25px);
-      }
-
-      .stacked-slider img:nth-child(5) {
+      
+      /* Position styles for the 4 visible images */
+      .slide-image:nth-child(1) {
         transform: translateX(0);
         opacity: 1;
-        z-index: 5;
+        z-index: 4;
         filter: blur(0);
       }
-
+      
+      .slide-image:nth-child(2) {
+        transform: translateX(35px);
+        opacity: 0.7;
+        z-index: 3;
+        filter: blur(0.25px);
+      }
+      
+      .slide-image:nth-child(3) {
+        transform: translateX(55px);
+        opacity: 0.4;
+        z-index: 2;
+        filter: blur(0.5px);
+      }
+      
+      .slide-image:nth-child(4) {
+        transform: translateX(75px);
+        opacity: 0.2;
+        z-index: 1;
+        filter: blur(0.75px);
+      }
+      
+      /* Animation for exiting image */
+      @keyframes exitAnimation {
+        0% { transform: translateX(0); opacity: 1; filter: blur(0); }
+        100% { transform: translateX(-50px); opacity: 0; filter: blur(2px); }
+      }
+      
+      .exit {
+        animation: exitAnimation 0.6s forwards;
+        z-index: 5;
+      }
+      
+      .exit-instant {
+        transform: translateX(-50px);
+        opacity: 0;
+        filter: blur(2px);
+        z-index: 5;
+      }
+      
+      /* Animation for advancing images */
+      @keyframes advanceAnimation {
+        0% { }
+        100% { 
+          transform: translateX(calc(var(--tx) - 35px));
+          opacity: var(--op);
+          filter: var(--blur);
+        }
+      }
+      
+      .advance {
+        animation: advanceAnimation 0.6s forwards;
+      }
+      
+      .advance-instant {
+        transform: translateX(var(--tx));
+        opacity: var(--op);
+        filter: var(--blur);
+      }
+      
+      /* Thumbnail styles */
+      .thumbnail-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 16px;
+      }
+      
       .thumbnail {
         width: 80px;
         height: 60px;
@@ -230,22 +219,15 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
         transition: all 0.3s ease;
         margin: 0 4px;
       }
-
+      
       .thumbnail.active {
         opacity: 1;
         transform: scale(1.1);
         border: 2px solid #3b82f6;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
       }
-
-      .thumbnail-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 8px;
-        margin-top: 16px;
-      }
-
+      
+      /* Enlarged image styles */
       .enlarged-image-overlay {
         position: fixed;
         top: 0;
@@ -261,48 +243,12 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
         transition: opacity 0.3s ease;
         pointer-events: none;
       }
-
-      /* Define Animations */
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateX(115px); /* Start further back */ }
-        to { opacity: 0; transform: translateX(95px); } /* End at the initial hidden position */
-      }
-
-      .fade-in {
-        animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-      }
-
-      @keyframes fastFadeIn {
-        from { opacity: 0; transform: translateX(115px); }
-        to { opacity: 0; transform: translateX(95px); }
-      }
-
-      .fast-fade-in {
-        animation: fastFadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-      }
-
-      @keyframes evaporate {
-         0% { transform: translateX(0) scale(1); opacity: 1; filter: blur(0); }
-         100% { transform: translateX(-50px) scale(0.9); opacity: 0; filter: blur(5px); }
-      }
-
-      .evaporate {
-        animation: evaporate 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        /* Ensure it stays on top during animation */
-        z-index: 6 !important; 
-      }
-      /* End Animations */
-
+      
       .enlarged-image-overlay.visible {
         opacity: 1;
         pointer-events: auto;
       }
-
-      .enlarged-image-overlay.visible ~ * {
-        filter: blur(10px);
-        pointer-events: none;
-      }
-
+      
       .enlarged-image-container {
         max-width: 90%;
         max-height: 90%;
@@ -311,12 +257,12 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
         opacity: 0;
         z-index: 1001;
       }
-
+      
       .enlarged-image-overlay.visible .enlarged-image-container {
         transform: scale(1);
         opacity: 1;
       }
-
+      
       .enlarged-image {
         max-width: 100%;
         max-height: 100%;
@@ -326,7 +272,7 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
       }
     `;
     document.head.appendChild(styleEl);
-
+    
     // Add event listener to close enlarged image on Escape key
     const handleEscapeKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -334,66 +280,92 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
       }
     };
     document.addEventListener('keydown', handleEscapeKey);
-
+    
+    // Start auto-rotation
+    intervalRef.current = window.setInterval(() => advanceSlideshow(), 4000);
+    
+    // Cleanup
     return () => {
       document.head.removeChild(styleEl);
       document.removeEventListener('keydown', handleEscapeKey);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
   }, []);
-
+  
+  // Update when images change
   useEffect(() => {
-    const slider = sliderRef.current;
-    if (!slider) return;
-
-    // Ensure we have at least 5 images by duplicating if necessary
-    const normalizedImages = [...images];
-    while (normalizedImages.length < 5) {
-      normalizedImages.push(...images);
+    // Reset active index when images change
+    setActiveIndex(0);
+    
+    // Restart auto-rotation
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
     }
     
-    // Update the slider with normalized images
-    slider.innerHTML = normalizedImages.slice(0, 5).map(src => 
-      `<img src="${src}" alt="Property view" />`
-    ).join('');
-
-    // Start auto-rotation
-    intervalRef.current = window.setInterval(() => moveStack(false), 4000);
-
+    if (images.length > 0) {
+      intervalRef.current = window.setInterval(() => advanceSlideshow(), 4000);
+    }
+    
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
     };
   }, [images]);
-
-  // Function to handle manual image selection
-  const handleThumbnailClick = (index: number) => {
+  
+  // Update the DOM after activeIndex changes
+  useEffect(() => {
     const slider = sliderRef.current;
     if (!slider) return;
-
-    // Pause any existing auto-rotation
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
+    
+    // Clear any existing animation classes
+    const existingImages = slider.querySelectorAll('.slide-image');
+    existingImages.forEach(img => {
+      img.classList.remove('exit', 'exit-instant', 'advance', 'advance-instant');
+    });
+    
+    // Get the visible images
+    const visibleImages = getVisibleImages();
+    
+    // Update the slider content
+    slider.innerHTML = visibleImages.map((src, index) => `
+      <img 
+        src="${src}" 
+        alt="Property view ${index + 1}" 
+        class="slide-image"
+        style="--tx: ${index === 0 ? '0' : index === 1 ? '35px' : index === 2 ? '55px' : '75px'};
+               --op: ${index === 0 ? '1' : index === 1 ? '0.7' : index === 2 ? '0.4' : '0.2'};
+               --blur: ${index === 0 ? 'blur(0)' : index === 1 ? 'blur(0.25px)' : index === 2 ? 'blur(0.5px)' : 'blur(0.75px)'}"
+      />
+    `).join('');
+    
+    // Add click event to the first (main) image
+    const mainImage = slider.querySelector('.slide-image');
+    if (mainImage) {
+      mainImage.addEventListener('click', () => {
+        const src = mainImage.getAttribute('src');
+        if (src) handleEnlargeImage(src);
+      });
     }
-
-    targetImageSrc.current = images[index];
-    moveStack(true, index);
-  };
-
+  }, [activeIndex, images]);
+  
   // If no images, show placeholder
   if (!images.length) {
     return (
-      <div className="stacked-slider bg-gray-100 flex items-center justify-center">
+      <div className="slider-container bg-gray-100 flex items-center justify-center">
         <p className="text-gray-500">No images available</p>
       </div>
     );
   }
-
+  
   return (
     <div>
-      <div className="stacked-slider" ref={sliderRef}>
-        {/* Initial images will be populated by useEffect */}
+      <div className="slider-container" ref={sliderRef}>
+        {/* Images will be populated by useEffect */}
       </div>
+      
       <div className="thumbnail-container">
         {images.map((img, index) => (
           <img
@@ -401,13 +373,13 @@ export function StackedImageSlider({ images }: StackedImageSliderProps) {
             src={img}
             alt={`Thumbnail ${index + 1}`}
             className={`thumbnail ${
-              index === activeImageIndex ? 'active' : ''
+              getVisibleIndices(activeIndex)[0] === index ? 'active' : ''
             }`}
             onClick={() => handleThumbnailClick(index)}
           />
         ))}
       </div>
-
+      
       {/* Enlarged Image Overlay */}
       <div 
         className={`enlarged-image-overlay ${enlargedImage ? 'visible' : ''}`}

@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { ScrollControls } from './components/ScrollControls';
+import { ScrollToTop } from './components/ScrollToTop';
 import { GlobalProvider } from './contexts/GlobalContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Home } from './pages/Home';
@@ -67,6 +68,7 @@ function App() {
     <GlobalProvider>
       <AuthProvider>
         <Router>
+          <ScrollToTop />
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-16">
             <Navbar />
             <Routes>

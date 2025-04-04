@@ -36,7 +36,14 @@ export function Navbar() {
   const isBitcoinPage = location.pathname === '/bitcoin';
   const isContactPage = location.pathname === '/contact';
   const isPageManagerPage = location.pathname === '/page-manager';
-  const alwaysScrolled = isPropertyPage || isBitcoinPage || isContactPage || isPageManagerPage;
+  const isMessagesPage = location.pathname === '/messages';
+  const isVipAccessPage = location.pathname === '/vip-access';
+  const isPolicyPage = location.pathname === '/policy';
+  const isDashboardPage = location.pathname === '/dashboard';
+  const isFavoritesPage = location.pathname === '/favorites';
+  
+  const alwaysScrolled = isPropertyPage || isBitcoinPage || isContactPage || isPageManagerPage || 
+                         isMessagesPage || isVipAccessPage || isPolicyPage || isDashboardPage || isFavoritesPage;
 
   useEffect(() => {
     const handleScroll = () => {
