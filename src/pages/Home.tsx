@@ -337,14 +337,10 @@ export function Home() {
               <div className="h-px w-12 bg-amber-500"></div>
             </div>
             
-            <div className="mb-4">
-              <h2 className="text-3xl font-light text-gray-900 dark:text-white">
-                Dubai Real Estate <span className="font-medium text-amber-500 dark:text-amber-400">Achievements as of 2024</span>
-              </h2>
-              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Data source: <a href="https://difc.realkeyper.com/" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">difc.realkeyper.com</a>
-              </div>
-            </div>
+            <h2 className="text-3xl font-light text-gray-900 dark:text-white mb-4">
+              Dubai Real Estate <span className="font-medium text-amber-500 dark:text-amber-400">Achievements as of 2024</span>
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Data source: <a href="https://difc.realkeyper.com/" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">difc.realkeyper.com</a></p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
