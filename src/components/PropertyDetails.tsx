@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog } from '@headlessui/react';
 import { PropertyCard } from './PropertyCard';
 import { GoogleMap, NearbyPlace } from './GoogleMap';
-import { Store, Utensils, Building2, School, Train, Sparkle as Park, MapPin, Plus, Heart } from 'lucide-react';
+import { Store, Utensils, Building2, School, Train, Sparkle as Park, MapPin, Plus, Heart, Briefcase, Sparkles } from 'lucide-react';
 import { useTranslate } from '../hooks/useTranslate';
 import { TranslationKey } from '../translations';
 import { useGlobal } from '../contexts/GlobalContext';
@@ -311,131 +311,169 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
   return (
     <div>
 {/* Brochure Popup */}
-{/* Added backdrop blur */}
-<Dialog open={isBrochureOpen} onClose={() => setIsBrochureOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"> 
-  {/* Added dark mode background and text */}
-  <Dialog.Panel className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-4xl w-full"> 
-    <Dialog.Title className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t('brochureImages')}</Dialog.Title> 
+<Dialog open={isBrochureOpen} onClose={() => setIsBrochureOpen(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md"> 
+  <Dialog.Panel className="bg-white dark:bg-gray-800/95 rounded-xl shadow-2xl p-8 max-w-5xl w-full border border-amber-200/20 dark:border-amber-500/20"> 
+    <Dialog.Title className="text-2xl font-light mb-6 text-gray-900 dark:text-white flex items-center">
+      <span className="h-px w-8 bg-amber-400 mr-3"></span>
+      {t('brochureImages')}
+    </Dialog.Title> 
     
     {/* No brochure images message */}
     {(!brochureImages || brochureImages.length === 0) ? (
-      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+      <div className="text-center py-12 text-gray-500 dark:text-gray-400">
         <p>{t('noBrochureImages')}</p>
       </div>
     ) : (
       <>
-        {/* Main large image */}
-        <div className="mb-4">
-          <img 
-            src={brochureImages[activeImageIndex || 0]} 
-            alt={`Brochure main view`} 
-            className="rounded-lg shadow-md object-contain w-full h-[500px] mx-auto"
-          />
+        {/* Main large image with elegant frame */}
+        <div className="mb-6 relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-amber-300/10 rounded-xl"></div>
+          <div className="p-1 bg-gradient-to-r from-amber-200/30 via-amber-400/20 to-amber-200/30 dark:from-amber-700/30 dark:via-amber-500/20 dark:to-amber-700/30 rounded-xl shadow-xl">
+            <img 
+              src={brochureImages[activeImageIndex || 0]} 
+              alt={`Brochure main view`} 
+              className="rounded-lg object-contain w-full h-[500px] mx-auto bg-white/50 dark:bg-black/30"
+            />
+          </div>
+          <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">
+            {activeImageIndex + 1} / {brochureImages.length}
+          </div>
         </div>
         
-        {/* Thumbnails */}
-        <div className="flex flex-wrap gap-2 justify-center">
+        {/* Thumbnails with elegant styling */}
+        <div className="flex flex-wrap gap-3 justify-center">
           {brochureImages.map((img, index) => (
             <button 
               key={index} 
               onClick={() => setActiveImageIndex(index)}
-              className={`relative p-1 rounded-md transition-all ${
+              className={`relative p-0.5 rounded-lg transition-all transform hover:scale-105 ${
                 index === activeImageIndex 
-                  ? 'ring-2 ring-blue-500 dark:ring-blue-400' 
-                  : 'hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600'
+                  ? 'bg-gradient-to-r from-amber-400 to-amber-600 shadow-lg shadow-amber-500/20' 
+                  : 'bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 hover:from-amber-300 hover:to-amber-500'
               }`}
             >
-              <img 
-                src={img} 
-                alt={`Thumbnail ${index}`} 
-                className="h-16 w-16 object-cover rounded"
-              />
+              <div className="p-0.5 bg-white dark:bg-gray-800 rounded-lg">
+                <img 
+                  src={img} 
+                  alt={`Thumbnail ${index}`} 
+                  className="h-16 w-20 object-cover rounded-md"
+                />
+              </div>
             </button>
           ))}
         </div>
       </>
     )}
     
-    {/* Added dark mode button styles */}
-    <button
-      onClick={() => setIsBrochureOpen(false)}
-      className="mt-6 px-4 py-2 bg-gray-800 dark:bg-gray-600 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-500" 
-    >
-      {t('close')}
-    </button>
+    {/* Elegant close button */}
+    <div className="mt-8 flex justify-center">
+      <button
+        onClick={() => setIsBrochureOpen(false)}
+        className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 shadow-lg shadow-amber-500/20 transition-all transform hover:scale-105 font-medium" 
+      >
+        {t('close')}
+      </button>
+    </div>
   </Dialog.Panel>
 </Dialog>
 
 {/* Property Details Section */}
-      <div className="mb-16">
-        <div className="flex items-center justify-between gap-4 mb-8">
-          {/* Added dark mode border and text */}
-          <div className="flex-1 border-b border-gray-200 dark:border-gray-700" /> 
-          <h2 className="text-2xl font-light text-gray-900 dark:text-white">{t('propertyDetails')}</h2>
+      <div className="mb-20">
+        {/* Elegant section header with gold accents */}
+        <div className="flex items-center justify-between gap-4 mb-10">
+          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-amber-200 dark:via-amber-700 to-transparent" />
+          <h2 className="text-3xl font-extralight text-gray-900 dark:text-white tracking-wide">{t('propertyDetails')}</h2>
           
-          {/* Favorite button */}
+          {/* Favorite button with luxury styling */}
           <button 
             onClick={handleFavoriteToggle}
-            className="flex items-center justify-center p-2 rounded-full bg-white dark:bg-gray-800 shadow-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="flex items-center justify-center p-2.5 rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg border border-amber-100 dark:border-amber-900/50 hover:border-amber-300 dark:hover:border-amber-700 transition-all transform hover:scale-105"
             aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
           >
             <Heart 
-              className={`w-6 h-6 ${isFavorited ? 'text-red-500 fill-current' : 'text-gray-400 dark:text-gray-500'}`} 
+              className={`w-6 h-6 ${isFavorited ? 'text-amber-500 fill-current' : 'text-gray-400 dark:text-gray-500 hover:text-amber-400'}`} 
             />
           </button>
         </div>
 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Added dark mode background and text */}
-          <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-sm"> 
-            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">{t('details')}</h3> 
-            <div className="space-y-3">
-              <div>
-                <p className="text-gray-600 dark:text-gray-400">{t('sizeRange')}</p> 
-                <p className="font-medium text-gray-900 dark:text-white"> 
-                  {details.size.min} - {details.size.max} {details.size.unit}
+          {/* Luxury card with gold accents */}
+          <div className="bg-gradient-to-br from-white to-amber-50 dark:from-gray-800 dark:to-gray-800/80 p-8 rounded-xl shadow-xl border border-amber-100/50 dark:border-amber-700/20 hover:shadow-2xl transition-all duration-500"> 
+            <div className="flex items-center mb-5">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-200 dark:shadow-amber-900/30 mr-3">
+                <Building2 className="w-4 h-4 text-white" />
+              </div>
+              <h3 className="text-xl font-light tracking-wide text-gray-900 dark:text-white">{t('details')}</h3>
+            </div>
+            <div className="space-y-5">
+              <div className="border-b border-amber-100 dark:border-gray-700 pb-3">
+                <p className="text-amber-700 dark:text-amber-400 text-sm font-medium mb-1">{t('sizeRange')}</p> 
+                <p className="font-medium text-2xl text-gray-900 dark:text-white"> 
+                  {details.size.min} - {details.size.max} <span className="text-sm font-light">{details.size.unit}</span>
                 </p>
               </div>
-              <div>
-                <p className="text-gray-600 dark:text-gray-400">{t('bedrooms')}</p> 
-                <p className="font-medium text-gray-900 dark:text-white">{details.bedrooms}</p> 
+              <div className="border-b border-amber-100 dark:border-gray-700 pb-3">
+                <p className="text-amber-700 dark:text-amber-400 text-sm font-medium mb-1">{t('bedrooms')}</p> 
+                <p className="font-medium text-2xl text-gray-900 dark:text-white">{details.bedrooms}</p> 
+              </div>
+              <div className="border-b border-amber-100 dark:border-gray-700 pb-3">
+                <p className="text-amber-700 dark:text-amber-400 text-sm font-medium mb-1">{t('bathrooms')}</p> 
+                <p className="font-medium text-2xl text-gray-900 dark:text-white">{details.bathrooms}</p> 
               </div>
               <div>
-                <p className="text-gray-600 dark:text-gray-400">{t('bathrooms')}</p> 
-                <p className="font-medium text-gray-900 dark:text-white">{details.bathrooms}</p> 
-              </div>
-              <div>
-                <p className="text-gray-600 dark:text-gray-400">{t('handover')}</p> 
-                <p className="font-medium text-gray-900 dark:text-white">{details.handover}</p> 
+                <p className="text-amber-700 dark:text-amber-400 text-sm font-medium mb-1">{t('handover')}</p> 
+                <p className="font-medium text-xl text-gray-900 dark:text-white">{details.handover}</p> 
               </div>
             </div>
           </div>
           {/* Added dark mode background and text */}
-<div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg shadow-sm"> 
-  <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">{t('paymentPlan')}</h3> 
-  <div className="space-y-3">
-    <div>
-      <p className="text-gray-600 dark:text-gray-400">{t('downPayment')}</p> 
-      <p className="font-medium text-gray-900 dark:text-white">{payment.downPayment}%</p> 
+<div className="bg-gradient-to-br from-white to-amber-50 dark:from-gray-800 dark:to-gray-800/80 p-8 rounded-xl shadow-xl border border-amber-100/50 dark:border-amber-700/20 hover:shadow-2xl transition-all duration-500"> 
+  <div className="flex items-center mb-5">
+    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-200 dark:shadow-amber-900/30 mr-3">
+      <Briefcase className="w-4 h-4 text-white" />
+    </div>
+    <h3 className="text-xl font-light tracking-wide text-gray-900 dark:text-white">{t('paymentPlan')}</h3>
+  </div>
+  <div className="space-y-5">
+    <div className="border-b border-amber-100 dark:border-gray-700 pb-3">
+      <p className="text-amber-700 dark:text-amber-400 text-sm font-medium mb-1">{t('downPayment')}</p>
+      <div className="flex items-end">
+        <p className="font-medium text-3xl text-gray-900 dark:text-white">{payment.downPayment}</p>
+        <p className="text-xl text-amber-600 dark:text-amber-500 ml-1">%</p>
+      </div>
     </div>
     <div>
-      <p className="text-gray-600 dark:text-gray-400">{t('duringConstruction')}</p> 
-      <p className="font-medium text-gray-900 dark:text-white">{payment.duringConstruction}%</p> 
+      <p className="text-amber-700 dark:text-amber-400 text-sm font-medium mb-1">{t('duringConstruction')}</p>
+      <div className="flex items-end">
+        <p className="font-medium text-3xl text-gray-900 dark:text-white">{payment.duringConstruction}</p>
+        <p className="text-xl text-amber-600 dark:text-amber-500 ml-1">%</p>
+      </div>
     </div>
   </div>
 </div>
 
-<div className="flex items-center justify-center [perspective:1000px]"> {/* Added perspective for 3D effect */}
-  {/* Added dark mode background and text */}
+<div className="flex items-center justify-center [perspective:1500px]">
   <button
     onClick={() => setIsBrochureOpen(true)}
-    className="flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-700 shadow-xl rounded-lg transition-transform duration-300 [transform:rotateY(-25deg)] hover:[transform:rotateY(0deg)] [transform-style:preserve-3d]" // Changed rotation to -25deg (left), increased padding
+    className="group flex flex-col items-center justify-center p-8 bg-gradient-to-br from-amber-50 to-white dark:from-gray-800 dark:to-gray-900 shadow-2xl rounded-xl transition-all duration-500 [transform:rotateY(-25deg)] hover:[transform:rotateY(0deg)] [transform-style:preserve-3d] border border-amber-200/50 dark:border-amber-700/30 hover:border-amber-300 dark:hover:border-amber-600"
   >
-    <span className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">{t('brochure')}</span> {/* Increased font size and margin */}
-    <img 
-      src={brochureImages && brochureImages.length > 0 ? brochureImages[0] : "/brochure-placeholder.png"} 
-      alt="Brochure" 
-      className="w-80 h-60 object-cover shadow-lg" 
-    /> {/* Display first brochure image if available */}
+    <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-amber-300/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+    <span className="text-xl font-light mb-5 text-gray-900 dark:text-white tracking-wide flex items-center">
+      <span className="h-px w-5 bg-amber-400 mr-2"></span>
+      {t('brochure')}
+      <span className="h-px w-5 bg-amber-400 ml-2"></span>
+    </span>
+    <div className="relative">
+      <div className="absolute -inset-1 bg-gradient-to-r from-amber-400/30 to-amber-600/30 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      <img 
+        src={brochureImages && brochureImages.length > 0 ? brochureImages[0] : "/brochure-placeholder.png"} 
+        alt="Brochure" 
+        className="w-80 h-60 object-cover shadow-lg rounded-lg relative z-10 group-hover:shadow-amber-200/50 dark:group-hover:shadow-amber-900/50 transition-all duration-500" 
+      />
+    </div>
+    <div className="mt-4 text-sm text-amber-600 dark:text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+      {/* Using a string directly since 'clickToView' may not be in the translation keys */}
+      Click to view
+    </div>
   </button>
 </div>
         </div>
@@ -443,18 +481,22 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
 
       {/* Features & Amenities Section */}
       {(features.residences.length > 0 || features.luxuryWellness.length > 0 || features.retailDining.length > 0) && (
-        <div className="mb-16">
-          <div className="flex items-center justify-end gap-4 mb-8">
-            {/* Added dark mode border and text */}
-            <div className="flex-1 border-b border-gray-200 dark:border-gray-700" /> 
-            <h2 className="text-2xl font-light text-gray-900 dark:text-white">{t('features')}</h2> 
+        <div className="mb-20">
+          {/* Elegant section header with gold accents */}
+          <div className="flex items-center justify-end gap-4 mb-10">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-amber-200 dark:via-amber-700 to-transparent" />
+            <h2 className="text-3xl font-extralight text-gray-900 dark:text-white tracking-wide">{t('features')}</h2> 
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             {translatedFeatures.residences.length > 0 && (
-              <div>
-                {/* Added dark mode text */}
-                <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t('residences')}</h3> 
-                <ul className="space-y-2">
+              <div className="bg-gradient-to-br from-white to-amber-50 dark:from-gray-800 dark:to-gray-800/80 p-8 rounded-xl shadow-xl border border-amber-100/50 dark:border-amber-700/20 hover:shadow-2xl transition-all duration-500">
+                <div className="flex items-center mb-5">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-200 dark:shadow-amber-900/30 mr-3">
+                    <Building2 className="w-4 h-4 text-white" />
+                  </div>
+                  <h3 className="text-xl font-light tracking-wide text-gray-900 dark:text-white">{t('residences')}</h3>
+                </div>
+                <ul className="space-y-3 mt-6">
                   {translatedFeatures.residences.map((feature, index) => (
                     <FeatureListItem
                       key={index}
@@ -467,10 +509,14 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
               </div>
             )}
             {translatedFeatures.luxuryWellness.length > 0 && (
-              <div>
-                {/* Added dark mode text */}
-                <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t('luxuryWellness')}</h3> 
-                <ul className="space-y-2">
+              <div className="bg-gradient-to-br from-white to-amber-50 dark:from-gray-800 dark:to-gray-800/80 p-8 rounded-xl shadow-xl border border-amber-100/50 dark:border-amber-700/20 hover:shadow-2xl transition-all duration-500">
+                <div className="flex items-center mb-5">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-200 dark:shadow-amber-900/30 mr-3">
+                    <Sparkles className="w-4 h-4 text-white" />
+                  </div>
+                  <h3 className="text-xl font-light tracking-wide text-gray-900 dark:text-white">{t('luxuryWellness')}</h3>
+                </div>
+                <ul className="space-y-3 mt-6">
                   {translatedFeatures.luxuryWellness.map((feature, index) => (
                     <FeatureListItem
                       key={index}
@@ -483,10 +529,14 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
               </div>
             )}
             {translatedFeatures.retailDining.length > 0 && (
-              <div className="md:col-span-2">
-                {/* Added dark mode text */}
-                <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t('retailDining')}</h3> 
-                <ul className="space-y-2">
+              <div className="md:col-span-2 bg-gradient-to-br from-white to-amber-50 dark:from-gray-800 dark:to-gray-800/80 p-8 rounded-xl shadow-xl border border-amber-100/50 dark:border-amber-700/20 hover:shadow-2xl transition-all duration-500">
+                <div className="flex items-center mb-5">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-200 dark:shadow-amber-900/30 mr-3">
+                    <Utensils className="w-4 h-4 text-white" />
+                  </div>
+                  <h3 className="text-xl font-light tracking-wide text-gray-900 dark:text-white">{t('retailDining')}</h3>
+                </div>
+                <ul className="space-y-3 mt-6 grid grid-cols-1 md:grid-cols-2 gap-x-8">
                   {translatedFeatures.retailDining.map((feature, index) => (
                     <FeatureListItem
                       key={index}
@@ -503,17 +553,18 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
       )}
 
       {/* Location Section */}
-      <div className="mb-16">
-        <div className="flex items-center justify-end gap-4 mb-8">
-          {/* Added dark mode border and text */}
-          <div className="flex-1 border-b border-gray-200 dark:border-gray-700" /> 
-          <h2 className="text-2xl font-light text-gray-900 dark:text-white">{t('location')}</h2> 
+      <div className="mb-20">
+        {/* Elegant section header with gold accents */}
+        <div className="flex items-center justify-end gap-4 mb-10">
+          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-amber-200 dark:via-amber-700 to-transparent" />
+          <h2 className="text-3xl font-extralight text-gray-900 dark:text-white tracking-wide">{t('location')}</h2> 
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          {/* Map on the left (3 columns) */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
+          {/* Map on the left (3 columns) with luxury styling */}
           <div className="lg:col-span-3">
-            <div className="relative rounded-lg overflow-hidden shadow-md">
+            <div className="relative rounded-xl overflow-hidden shadow-2xl border border-amber-100/50 dark:border-amber-700/20">
+              <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-amber-300/5 pointer-events-none z-10"></div>
               <GoogleMap 
                 center={mapCenter}
                 onCenterChange={setMapCenter}
@@ -612,13 +663,21 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
 
       {/* Similar Properties Section */}
       {similarProperties.length > 0 && (
-        <div className="mb-16">
-          <div className="flex items-center justify-end gap-4 mb-8">
-            {/* Added dark mode border and text */}
-            <div className="flex-1 border-b border-gray-200 dark:border-gray-700" /> 
-            <h2 className="text-2xl font-light text-gray-900 dark:text-white">{t('similarProperties')}</h2> 
+        <div className="mb-20">
+          {/* Elegant section header with gold accents */}
+          <div className="flex items-center justify-end gap-4 mb-10">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-amber-200 dark:via-amber-700 to-transparent" />
+            <h2 className="text-3xl font-extralight text-gray-900 dark:text-white tracking-wide">{t('similarProperties')}</h2> 
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          
+          {/* Elegant intro text */}
+          <div className="text-center mb-10">
+            <p className="text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Discover more exceptional properties that match your preferences and lifestyle aspirations.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {similarProperties.map((property) => (
               <PropertyCard
                 key={property.id}

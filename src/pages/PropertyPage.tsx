@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronUp, ChevronDown } from 'lucide-react';
 import { PropertyDetails } from '../components/PropertyDetails';
 import { StackedImageSlider } from '../components/StackedImageSlider';
 import { CurrencyConverter } from '../components/CurrencyConverter';
@@ -19,7 +18,7 @@ export function PropertyPage({ previewData }: PropertyPageProps) {
   const properties = usePropertyStore((state) => state.properties);
   const { currency, language } = useGlobal();
   const { t } = useTranslate();
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  // No longer need isDescriptionExpanded state
   const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(false);
   const [translatedDescription, setTranslatedDescription] = useState<string>('');
   const [isTranslating, setIsTranslating] = useState(false);
@@ -66,12 +65,27 @@ export function PropertyPage({ previewData }: PropertyPageProps) {
   }, [property?.description, language]);
 
   useEffect(() => {
-    if (descriptionRef.current && slideshowRef.current) {
-      const descHeight = descriptionRef.current.scrollHeight;
-      const slideHeight = slideshowRef.current.offsetHeight;
-      setIsDescriptionOverflowing(descHeight > slideHeight);
-    }
-  }, [property?.description]);
+    // Check if description overflows
+    const checkOverflow = () => {
+      if (descriptionRef.current && slideshowRef.current) {
+        const descHeight = descriptionRef.current.scrollHeight;
+        const slideHeight = slideshowRef.current.offsetHeight;
+        console.log('Description height:', descHeight, 'Slideshow height:', slideHeight);
+        setIsDescriptionOverflowing(descHeight > slideHeight);
+      }
+    };
+    
+    // Run check after a short delay to ensure all elements are properly rendered
+    const timer = setTimeout(checkOverflow, 100);
+    
+    // Also add a resize listener to recheck on window resize
+    window.addEventListener('resize', checkOverflow);
+    
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', checkOverflow);
+    };
+  }, [property?.description, translatedDescription]);
 
   if (!property) {
     return null;
@@ -96,62 +110,64 @@ export function PropertyPage({ previewData }: PropertyPageProps) {
 
   return (
     <div className={previewData ? 'pt-16' : ''}>
-      {/* Header Background - Added dark mode support */}
+      {/* Header Background with luxury styling */}
       {!previewData && (
-        <div className="h-24 bg-white dark:bg-gray-900 fixed top-0 left-0 right-0 z-40 border-b shadow-sm dark:border-gray-700" />
+        <div className="h-24 bg-white dark:bg-gray-900 fixed top-0 left-0 right-0 z-40 border-b border-amber-100/50 dark:border-amber-800/20 shadow-md" />
       )}
       
       <div className={`relative ${previewData ? '' : 'z-30 pt-24'}`}>
         <div className="max-w-8xl mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
-            {/* Left Column - Property Info - Added dark mode text colors */}
+          {/* Elegant gold accent line */}
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-amber-200 dark:via-amber-700 to-transparent mb-12"></div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16">
+            {/* Left Column - Property Info with luxury styling */}
             <div className="lg:col-span-4">
               <div className="sticky top-32">
-                <div className="flex items-center justify-between mb-6">
-                  <h1 className="text-4xl font-light text-gray-900 dark:text-white">{property.name}</h1>
-                  <div className="text-2xl font-light text-gray-900 dark:text-white">
+                <div className="mb-8">
+                  <div className="flex items-center mb-2">
+                    <div className="h-px w-8 bg-amber-400 mr-3"></div>
+                    <span className="text-amber-600 dark:text-amber-400 text-sm tracking-wider uppercase font-light">Exclusive Property</span>
+                  </div>
+                  <h1 className="text-4xl font-extralight text-gray-900 dark:text-white tracking-wide mb-4">{property.name}</h1>
+                  <div className="text-4xl font-light text-amber-600 dark:text-amber-400 text-right">
                     <CurrencyConverter amount={property.price} baseCurrency={property.currency} />
                   </div>
                 </div>
-                <div className="relative">
-                  <div 
-                    ref={descriptionRef}
-                    className={`prose prose-gray dark:prose-invert relative ${
-                      !isDescriptionExpanded && isDescriptionOverflowing ? 'max-h-[calc(100vh-200px)] overflow-hidden' : ''
-                    }`}
-                  >
-                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                      {isTranslating ? (
-                        <span className="italic text-gray-400 dark:text-gray-500">{t('translating')}...</span>
-                      ) : translatedDescription || property.description}
-                    </p>
+                <div className="relative mt-8">
+                  <div className="bg-gradient-to-br from-white to-amber-50 dark:from-gray-800 dark:to-gray-800/80 p-8 rounded-xl shadow-xl border border-amber-100/50 dark:border-amber-700/20 transition-all duration-500">
+                    <div 
+                      ref={descriptionRef}
+                      className="prose prose-gray dark:prose-invert relative overflow-y-auto scrollbar-thin scrollbar-thumb-amber-200 dark:scrollbar-thumb-amber-700 scrollbar-track-transparent"
+                      style={{ 
+                        maxHeight: isDescriptionOverflowing ? 
+                          (slideshowRef.current ? `${slideshowRef.current.offsetHeight - 50}px` : 'calc(100vh-280px)') : 
+                          'none',
+                        paddingRight: '10px'
+                      }}
+                    >
+                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg">
+                        {isTranslating ? (
+                          <span className="italic text-gray-400 dark:text-gray-500">{t('translating')}...</span>
+                        ) : translatedDescription || property.description}
+                      </p>
+                    </div>
+                    
+                    {/* Elegant gradient to indicate scrollable content */}
+                    {isDescriptionOverflowing && (
+                      <div className="absolute bottom-8 left-8 right-8 h-16 bg-gradient-to-t from-amber-50 dark:from-gray-800 to-transparent pointer-events-none" />
+                    )}
                   </div>
-                  
-                  {/* Added dark mode for gradient and button - Note the from-white to from-gray-900 change */}
-                  {isDescriptionOverflowing && (
-                    <>
-                      {!isDescriptionExpanded && (
-                        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white dark:from-gray-900 to-transparent" />
-                      )}
-                      <button
-                        onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                        className="mt-2 flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                      >
-                        {isDescriptionExpanded ? (
-                          <>{t('showLess')} <ChevronUp className="w-4 h-4" /></>
-                        ) : (
-                          <>{t('readMore')} <ChevronDown className="w-4 h-4" /></>
-                        )}
-                      </button>
-                    </>
-                  )}
                 </div>
               </div>
             </div>
             
             {/* Right Column - Image Slider */}
             <div className="lg:col-span-8" ref={slideshowRef}>
+              {/* Add a subtle border to enhance the luxury feel */}
+              <div className="p-1 bg-gradient-to-r from-amber-200/30 via-amber-400/20 to-amber-200/30 dark:from-amber-700/30 dark:via-amber-500/20 dark:to-amber-700/30 rounded-xl shadow-xl">
               <StackedImageSlider images={property.slideshowImages || property.images} />
+              </div>
             </div>
           </div>
 
