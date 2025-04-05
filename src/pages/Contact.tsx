@@ -104,7 +104,7 @@ export function Contact() {
     try {
       // In a real implementation, this would be an API call to your backend
       // For now, we'll simulate a successful submission
-      console.log('Sending email to: contact@mairealestate.ae and info@mairealestate.ae');
+      console.log('Sending email to: contact@mairealestate.ae');
       console.log('From:', name, email);
       console.log('Message:', message);
       
@@ -309,10 +309,6 @@ export function Contact() {
                       <p className="text-gray-400">
                         <a href="mailto:contact@mairealestate.ae" className="hover:text-amber-400 transition-colors">
                           contact@mairealestate.ae
-                        </a>
-                        <br />
-                        <a href="mailto:info@mairealestate.ae" className="hover:text-amber-400 transition-colors">
-                          info@mairealestate.ae
                         </a>
                       </p>
                     </div>

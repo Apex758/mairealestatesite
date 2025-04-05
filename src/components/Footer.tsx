@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslate } from '../hooks/useTranslate';
 import Newsletter from './Newsletter';
+import { LanguageCurrencyControls } from './LanguageCurrencyControls';
 
 export function Footer() {
   const { t } = useTranslate();
@@ -79,8 +80,9 @@ export function Footer() {
               </li>
             </ul>
           </div>
-          <div>
+          <div className="space-y-8">
             <Newsletter />
+            <LanguageCurrencyControls variant="footer" />
           </div>
         </div>
         <div className="border-t border-gray-200 dark:border-gray-800 mt-8 pt-8 text-center text-gray-500 dark:text-gray-400">

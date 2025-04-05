@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Bitcoin as BitcoinIcon, Globe2, ArrowRight, Lock, Wallet, Building, FileCheck } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Bitcoin as BitcoinIcon, Globe2, Lock, Wallet, Building, FileCheck } from 'lucide-react';
 import { useGlobal } from '../contexts/GlobalContext';
 import { translateText } from '../utils/translateUtils';
 
 export function Bitcoin() {
   const { language } = useGlobal();
   const [isVisible, setIsVisible] = useState(false);
+  const [showContact, setShowContact] = useState(false);
   
   // Animation effect for luxury elements
   useEffect(() => {
@@ -74,20 +74,24 @@ export function Bitcoin() {
         
         <div className="relative z-10 max-w-7xl mx-auto px-4 text-center">
           <div className={`transition-all duration-1000 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            <div className="inline-flex items-center justify-center mb-6">
+            <div className="flex items-center justify-center gap-4 mb-6">
               <div className="h-px w-12 bg-amber-400"></div>
-              <span className="mx-4 text-amber-400 tracking-[0.3em] uppercase text-sm font-light">Innovation</span>
+              <span className="text-amber-400 tracking-[0.3em] uppercase text-sm font-light">Innovation</span>
               <div className="h-px w-12 bg-amber-400"></div>
             </div>
-            
-            <div className="inline-flex items-center gap-3 text-amber-400 mb-6">
+            <div className="flex items-center justify-center gap-3 text-amber-400 mb-6">
               <BitcoinIcon className="w-8 h-8" />
               <span className="text-xl font-light tracking-wide">CRYPTO REAL ESTATE</span>
             </div>
-            
+
             <h1 className="text-5xl font-extralight text-white mb-6 tracking-wider">{translatedContent.heroTitle}</h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-              {translatedContent.heroDescription}
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              Dubai has firmly established itself as a global epicenter for forward-thinking investment—and
+              now, purchasing prime real estate with cryptocurrency is not just possible, it's elegantly simple.
+            </p>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mt-4">
+              At MAI Real Estate L.L.C, we offer elite investors a discreet, fully compliant pathway to
+              acquire prestigious properties in Dubai using Bitcoin and other approved cryptocurrencies.
             </p>
           </div>
         </div>
@@ -116,10 +120,12 @@ export function Bitcoin() {
               <div className="bg-gradient-to-br from-amber-400 to-amber-600 w-16 h-16 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <Globe2 className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Global Transactions</h3>
+              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Global Capital Mobility</h3>
               <div className="h-px w-12 bg-amber-500 mb-6"></div>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                {translatedContent.globalTransactions}
+                Cryptocurrency allows you to move capital across borders with speed and precision, offering
+                a seamless experience for international investors seeking immediate access to Dubai's luxury real
+                estate market.
               </p>
             </div>
             
@@ -127,10 +133,11 @@ export function Bitcoin() {
               <div className="bg-gradient-to-br from-amber-400 to-amber-600 w-16 h-16 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <Lock className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Legal Compliance</h3>
+              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Privacy & Discretion</h3>
               <div className="h-px w-12 bg-amber-500 mb-6"></div>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                {translatedContent.legalCompliance}
+                Crypto transactions provide a level of discretion unmatched by traditional banking—ideal for
+                ultra-high-net-worth individuals who value privacy in their acquisitions.
               </p>
             </div>
             
@@ -138,10 +145,11 @@ export function Bitcoin() {
               <div className="bg-gradient-to-br from-amber-400 to-amber-600 w-16 h-16 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <Wallet className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Asset Conversion</h3>
+              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Diversification with Tangible Assets</h3>
               <div className="h-px w-12 bg-amber-500 mb-6"></div>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                {translatedContent.assetConversion}
+                Converting digital wealth into prime physical real estate in one of the world's most stable,
+                rapidly growing markets creates a powerful balance between innovation and security.
               </p>
             </div>
           </div>
@@ -160,15 +168,19 @@ export function Bitcoin() {
         
         <div className="relative z-10 max-w-4xl mx-auto px-4">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center justify-center mb-6">
+            <div className="inline-flex items-cent  er justify-center mb-6">
               <div className="h-px w-12 bg-amber-400"></div>
               <span className="mx-4 text-amber-400 tracking-[0.3em] uppercase text-sm font-light">Methodology</span>
               <div className="h-px w-12 bg-amber-400"></div>
             </div>
             
             <h2 className="text-3xl font-light text-white mb-4">
-              {translatedContent.purchaseProcess}
+              How It Works – Crypto to Title Deed
             </h2>
+            <p className="text-gray-300 max-w-3xl mx-auto mb-8">
+              Our process is streamlined, secure, and fully aligned with UAE law and Dubai Land
+              Department (DLD) guidelines
+            </p>
           </div>
           
           <div className="space-y-16">
@@ -181,10 +193,13 @@ export function Bitcoin() {
                   <span className="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center mr-2">
                     <span className="text-amber-400 text-sm">1</span>
                   </span>
-                  Property Selection
+                  Proof of Funds & KYC
                 </h3>
                 <div className="h-px w-12 bg-amber-500 mb-6"></div>
-                <p className="text-gray-300 leading-relaxed">{translatedContent.propertySelection}</p>
+                <p className="text-gray-300 leading-relaxed">
+                  Clients are required to submit Proof of Funds (POF) and complete a confidential Know
+                  Your Customer (KYC) process to ensure full regulatory compliance.
+                </p>
               </div>
             </div>
 
@@ -197,10 +212,15 @@ export function Bitcoin() {
                   <span className="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center mr-2">
                     <span className="text-amber-400 text-sm">2</span>
                   </span>
-                  Asset Planning
+                  Crypto Payment via Licensed OTC or Exchange Partner
                 </h3>
                 <div className="h-px w-12 bg-amber-500 mb-6"></div>
-                <p className="text-gray-300 leading-relaxed">{translatedContent.assetPlanning}</p>
+                <p className="text-gray-300 leading-relaxed">
+                  Payments are processed through approved over-the-counter (OTC) desks or regulated
+                  crypto exchanges, converting your crypto into AED (UAE Dirham) as required by law.
+                  We work only with licensed financial intermediaries to guarantee transparency and
+                  legal adherence.
+                </p>
               </div>
             </div>
 
@@ -213,10 +233,14 @@ export function Bitcoin() {
                   <span className="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center mr-2">
                     <span className="text-amber-400 text-sm">3</span>
                   </span>
-                  Escrow Setup
+                  Secure Transaction & Escrow Protection
                 </h3>
                 <div className="h-px w-12 bg-amber-500 mb-6"></div>
-                <p className="text-gray-300 leading-relaxed">{translatedContent.escrowSetup}</p>
+                <p className="text-gray-300 leading-relaxed">
+                  Funds are deposited into the developer's or seller's designated escrow account, as
+                  mandated by Dubai's Real Estate Regulatory Agency (RERA) and Law No. (8) of
+                  2007 on real estate escrow accounts.
+                </p>
               </div>
             </div>
 
@@ -229,10 +253,13 @@ export function Bitcoin() {
                   <span className="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center mr-2">
                     <span className="text-amber-400 text-sm">4</span>
                   </span>
-                  Property Transfer
+                  Title Deed Issued in Your Name
                 </h3>
                 <div className="h-px w-12 bg-amber-500 mb-6"></div>
-                <p className="text-gray-300 leading-relaxed">{translatedContent.propertyTransfer}</p>
+                <p className="text-gray-300 leading-relaxed">
+                  Upon completion, the Dubai Land Department issues a title deed under your name or
+                  entity—signifying full legal ownership of the asset.
+                </p>
               </div>
             </div>
           </div>
@@ -248,21 +275,45 @@ export function Bitcoin() {
           <div className={`transition-all duration-1000 delay-300 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
             <div className="inline-flex items-center justify-center mb-6">
               <div className="h-px w-12 bg-amber-500"></div>
-              <span className="mx-4 text-amber-500 tracking-[0.3em] uppercase text-sm font-light">Begin</span>
+              <span className="mx-4 text-amber-500 tracking-[0.3em] uppercase text-sm font-light">Contact</span>
               <div className="h-px w-12 bg-amber-500"></div>
             </div>
             
             <h2 className="text-3xl font-light text-gray-900 dark:text-white mb-8">
-              {translatedContent.ctaTitle}
+              What You Can Buy
             </h2>
             
-            <Link
-              to="/contact"
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-8 py-4 rounded-full hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg shadow-amber-900/20 group"
-            >
-              {translatedContent.contactSpecialists}
-              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-            </Link>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto mb-12">
+              <div className="bg-white/5 backdrop-blur-sm p-4 rounded-lg border border-gray-200/10">
+                <p className="text-gray-300">Off-market ultra-luxury penthouses</p>
+              </div>
+              <div className="bg-white/5 backdrop-blur-sm p-4 rounded-lg border border-gray-200/10">
+                <p className="text-gray-300">Beachfront villas on Palm Jumeirah</p>
+              </div>
+              <div className="bg-white/5 backdrop-blur-sm p-4 rounded-lg border border-gray-200/10">
+                <p className="text-gray-300">Branded residences in Downtown Dubai, Emirates Hills, and Dubai Hills</p>
+              </div>
+              <div className="bg-white/5 backdrop-blur-sm p-4 rounded-lg border border-gray-200/10">
+                <p className="text-gray-300">Landmark commercial properties and investment portfolios</p>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <h3 className="text-2xl font-light text-white mb-4">Private Desk – M A I Real Estate L.L.C</h3>
+              <button 
+                onClick={() => setShowContact(!showContact)}
+                className="px-8 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-full hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg shadow-amber-900/20 mb-4"
+              >
+                Contact
+              </button>
+              {showContact && (
+                <div className="flex items-center justify-center gap-8 text-gray-300 mt-4">
+                   <a href="tel:+971507416377" className="hover:text-amber-400 transition-colors">+971507416377</a>
+                  <a href="mailto:william@mairealestate.ae" className="hover:text-amber-400 transition-colors">william@mairealestate.ae</a>
+                </div>
+              )}
+              <p className="text-amber-400 mt-8 text-lg font-light italic">Where Digital Wealth Meets Timeless Legacy</p>
+            </div>
           </div>
         </div>
       </div>

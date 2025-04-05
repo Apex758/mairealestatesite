@@ -12,7 +12,6 @@ import {
   MapPin,
   Check,
   X,
-  FileText,
   Layout,
   Star,
   Mail
@@ -166,7 +165,7 @@ const DEFAULT_HOMEPAGE: HomepageSettings = {
 
 export function PageManager() {
   const [activeProperty, setActiveProperty] = useState<string | null>(null);
-  const [editingMode, setEditingMode] = useState<'details' | 'slideshow' | 'location' | 'amenities' | 'hosting' | 'content' | 'homepage' | 'contact' | 'newsletter'>('details');
+  const [editingMode, setEditingMode] = useState<'details' | 'slideshow' | 'location' | 'amenities' | 'hosting' | 'homepage' | 'contact' | 'newsletter'>('details');
   const [selectedPlaceType, setSelectedPlaceType] = useState<string | null>("restaurant");
   // Initialize homepage settings from localStorage or use defaults
   const [homepageSettings, setHomepageSettings] = useState<HomepageSettings>(() => {
@@ -188,35 +187,6 @@ export function PageManager() {
     title: ''
   });
   
-  // Contact information state - initialize from localStorage or use defaults
-  const [contactInfo, setContactInfo] = useState(() => {
-    const savedContactInfo = localStorage.getItem('contactInfo');
-    return savedContactInfo ? JSON.parse(savedContactInfo) : {
-      address: {
-        street: '123 Luxury Real Estate Blvd',
-        city: 'Beverly Hills',
-        state: 'CA',
-        zip: '90210'
-      },
-      phone: '+1 (310) 555-0123',
-      email: 'contact@mairealestate.com',
-      officeHours: {
-        weekdays: 'Monday - Friday: 9:00 AM - 6:00 PM',
-        saturday: 'Saturday: 10:00 AM - 4:00 PM',
-        sunday: 'Sunday: Closed'
-      }
-    };
-  });
-
-  // Legal pages state - initialize from localStorage or use defaults
-  const [legalPages, setLegalPages] = useState(() => {
-    const savedLegalPages = localStorage.getItem('legalPages');
-    return savedLegalPages ? JSON.parse(savedLegalPages) : {
-      privacyPolicy: '',
-      termsOfService: '',
-      cookiePolicy: ''
-    };
-  });
   
   // Contact map location - initialize from localStorage or use defaults
   const [contactMapLocation, setContactMapLocation] = useState(() => {
@@ -483,15 +453,6 @@ const [showPreview, setShowPreview] = useState(false);
             >
               <Cloud className="w-4 h-4" />
               Hosting
-            </button>
-            <button
-              onClick={() => setEditingMode('content')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                editingMode === 'content' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
-              }`}
-            >
-              <FileText className="w-4 h-4" />
-              Content
             </button>
             <button
               onClick={() => setEditingMode('contact')}
@@ -1179,242 +1140,6 @@ const [showPreview, setShowPreview] = useState(false);
                   </div>
                 )}
                 
-                {editingMode === 'content' && (
-                  <div className="space-y-8">
-                    <div>
-                      <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
-                      <div className="grid grid-cols-2 gap-6 mb-6">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Street Address
-                          </label>
-                          <input
-                            type="text"
-                            value={contactInfo.address.street}
-                            onChange={(e) => setContactInfo({
-                              ...contactInfo,
-                              address: {
-                                ...contactInfo.address,
-                                street: e.target.value
-                              }
-                            })}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            City
-                          </label>
-                          <input
-                            type="text"
-                            value={contactInfo.address.city}
-                            onChange={(e) => setContactInfo({
-                              ...contactInfo,
-                              address: {
-                                ...contactInfo.address,
-                                city: e.target.value
-                              }
-                            })}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-6 mb-6">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            State/Province
-                          </label>
-                          <input
-                            type="text"
-                            value={contactInfo.address.state}
-                            onChange={(e) => setContactInfo({
-                              ...contactInfo,
-                              address: {
-                                ...contactInfo.address,
-                                state: e.target.value
-                              }
-                            })}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            ZIP/Postal Code
-                          </label>
-                          <input
-                            type="text"
-                            value={contactInfo.address.zip}
-                            onChange={(e) => setContactInfo({
-                              ...contactInfo,
-                              address: {
-                                ...contactInfo.address,
-                                zip: e.target.value
-                              }
-                            })}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-6 mb-6">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Phone Number
-                          </label>
-                          <input
-                            type="text"
-                            value={contactInfo.phone}
-                            onChange={(e) => setContactInfo({
-                              ...contactInfo,
-                              phone: e.target.value
-                            })}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Email Address
-                          </label>
-                          <input
-                            type="email"
-                            value={contactInfo.email}
-                            onChange={(e) => setContactInfo({
-                              ...contactInfo,
-                              email: e.target.value
-                            })}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="mb-6">
-                        <h4 className="text-md font-medium mb-3">Office Hours</h4>
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              Weekdays
-                            </label>
-                            <input
-                              type="text"
-                              value={contactInfo.officeHours.weekdays}
-                              onChange={(e) => setContactInfo({
-                                ...contactInfo,
-                                officeHours: {
-                                  ...contactInfo.officeHours,
-                                  weekdays: e.target.value
-                                }
-                              })}
-                              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              Saturday
-                            </label>
-                            <input
-                              type="text"
-                              value={contactInfo.officeHours.saturday}
-                              onChange={(e) => setContactInfo({
-                                ...contactInfo,
-                                officeHours: {
-                                  ...contactInfo.officeHours,
-                                  saturday: e.target.value
-                                }
-                              })}
-                              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              Sunday
-                            </label>
-                            <input
-                              type="text"
-                              value={contactInfo.officeHours.sunday}
-                              onChange={(e) => setContactInfo({
-                                ...contactInfo,
-                                officeHours: {
-                                  ...contactInfo.officeHours,
-                                  sunday: e.target.value
-                                }
-                              })}
-                              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="border-t dark:border-gray-700 pt-8">
-                      <h3 className="text-lg font-semibold mb-4">Legal Pages</h3>
-                      
-                      <div className="space-y-6">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Privacy Policy
-                          </label>
-                          <textarea
-                            value={legalPages.privacyPolicy}
-                            onChange={(e) => setLegalPages({
-                              ...legalPages,
-                              privacyPolicy: e.target.value
-                            })}
-                            rows={6}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
-                            placeholder="Enter your privacy policy content here..."
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Terms of Service
-                          </label>
-                          <textarea
-                            value={legalPages.termsOfService}
-                            onChange={(e) => setLegalPages({
-                              ...legalPages,
-                              termsOfService: e.target.value
-                            })}
-                            rows={6}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
-                            placeholder="Enter your terms of service content here..."
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Cookie Policy
-                          </label>
-                          <textarea
-                            value={legalPages.cookiePolicy}
-                            onChange={(e) => setLegalPages({
-                              ...legalPages,
-                              cookiePolicy: e.target.value
-                            })}
-                            rows={6}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg"
-                            placeholder="Enter your cookie policy content here..."
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="mt-6">
-                        <button
-                          onClick={() => {
-                            // Save contact info and legal pages to localStorage
-                            localStorage.setItem('contactInfo', JSON.stringify(contactInfo));
-                            localStorage.setItem('legalPages', JSON.stringify(legalPages));
-                            toast.success('Content settings saved successfully');
-                          }}
-                        className="px-6 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg shadow-amber-900/20"
-                        >
-                          Save Content Settings
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
 
                 {editingMode === 'homepage' && (
                   <div className="space-y-8">

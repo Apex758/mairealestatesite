@@ -225,7 +225,7 @@ export function Navbar() {
           {/* Mobile Menu */}
           <div className={`md:hidden fixed inset-0 z-50 transform ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 ease-in-out`}>
             <div className="absolute inset-0 bg-black/50" onClick={() => setIsMobileMenuOpen(false)} />
-            <div className="absolute right-0 h-full w-64 bg-white dark:bg-gray-900 shadow-xl">
+            <div className="absolute right-0 h-full w-64 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-xl border-l border-gray-200 dark:border-gray-700">
               <div className="p-4 space-y-4">
                 <Link 
                   to="/listings" 
