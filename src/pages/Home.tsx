@@ -325,46 +325,6 @@ export function Home() {
         </div>
       </div>
 
-      {/* Stats Section */}
-      <div className="bg-gradient-to-b from-gray-100 to-white dark:from-gray-900 dark:to-gray-800 py-24 relative"> 
-        <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-amber-500 to-transparent"></div>
-        <div className="absolute right-0 top-0 w-1 h-full bg-gradient-to-b from-amber-500 to-transparent"></div>
-        
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center justify-center mb-6">
-              <div className="h-px w-12 bg-amber-500"></div>
-              <span className="mx-4 text-amber-500 tracking-[0.3em] uppercase text-sm font-light">Excellence</span>
-              <div className="h-px w-12 bg-amber-500"></div>
-            </div>
-            
-            <h2 className="text-3xl font-light text-gray-900 dark:text-white mb-4">
-              Our <span className="font-medium text-amber-500 dark:text-amber-400">Achievements</span>
-            </h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div className={`bg-white dark:bg-gray-800 p-10 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 text-center transition-all duration-1000 delay-300 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-              <div className="text-5xl font-light mb-4 text-amber-500">500+</div> 
-              <div className="h-px w-12 bg-amber-500 mx-auto mb-4"></div>
-              <div className="text-xl text-gray-700 dark:text-gray-300">{t('dubaiProperties')}</div> 
-            </div>
-            
-            <div className={`bg-white dark:bg-gray-800 p-10 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 text-center transition-all duration-1000 delay-500 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-              <div className="text-5xl font-light mb-4 text-amber-500">$2B+</div> 
-              <div className="h-px w-12 bg-amber-500 mx-auto mb-4"></div>
-              <div className="text-xl text-gray-700 dark:text-gray-300">{t('cryptoTransactions')}</div> 
-            </div>
-            
-            <div className={`bg-white dark:bg-gray-800 p-10 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 text-center transition-all duration-1000 delay-700 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-              <div className="text-5xl font-light mb-4 text-amber-500">100%</div> 
-              <div className="h-px w-12 bg-amber-500 mx-auto mb-4"></div>
-              <div className="text-xl text-gray-700 dark:text-gray-300">{t('secureEscrow')}</div> 
-            </div>
-          </div>
-        </div>
-      </div>
-      
       {/* Footer Decoration */}
       <div className="h-1 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500"></div>
     </div>
