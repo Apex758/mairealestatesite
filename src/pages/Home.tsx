@@ -182,30 +182,30 @@ export function Home() {
             <div className="flex gap-6 justify-center">
               <Link 
                 to="/listings"
-                className="inline-flex items-center gap-2 bg-transparent border border-amber-400 text-white px-8 py-4 rounded-full 
-                         hover:bg-amber-500/10 transition-all text-lg tracking-wide group"
+                className="inline-flex items-center gap-2 bg-transparent border border-amber-400 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full 
+                         hover:bg-amber-500/10 active:bg-amber-500/20 transition-all text-base sm:text-lg tracking-wide group"
               >
                 <HomeIcon className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" />
-                {t('exploreProperties')}
+                <span className="whitespace-nowrap">{t('exploreProperties')}</span>
               </Link>
               <Link 
                 to="/bitcoin"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-8 py-4 rounded-full 
-                         hover:from-amber-600 hover:to-amber-700 transition-all text-lg tracking-wide shadow-lg shadow-amber-900/20 group"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full 
+                         hover:from-amber-600 hover:to-amber-700 active:from-amber-700 active:to-amber-800 transition-all text-base sm:text-lg tracking-wide shadow-lg shadow-amber-900/20 group"
               >
                 <Bitcoin className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                {t('learnHow')}
+                <span className="whitespace-nowrap">{t('learnHow')}</span>
               </Link>
             </div>
           </div>
         </div>
         
-        <button 
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-amber-400 animate-bounce"
-          onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
-        >
-          <ChevronDown className="w-8 h-8" />
-        </button>
+          <button 
+            className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-amber-400 animate-bounce p-2 hover:text-amber-300 active:text-amber-500 transition-colors"
+            onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
+          >
+            <ChevronDown className="w-6 h-6 sm:w-8 sm:h-8" />
+          </button>
       </div>
 
       {/* Grid Section */}
@@ -315,10 +315,11 @@ export function Home() {
           <div className="text-center mt-16">
             <Link 
               to="/listings"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-8 py-4 rounded-full hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg shadow-amber-900/20 group"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full 
+                       hover:from-amber-600 hover:to-amber-700 active:from-amber-700 active:to-amber-800 transition-all shadow-lg shadow-amber-900/20 group"
             >
               <Star className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span className="tracking-wider">{t('viewAllProperties')}</span>
+              <span className="tracking-wider whitespace-nowrap text-base sm:text-lg">{t('viewAllProperties')}</span>
             </Link>
           </div>
         </div>

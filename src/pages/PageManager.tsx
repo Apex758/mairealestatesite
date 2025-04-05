@@ -14,10 +14,12 @@ import {
   X,
   FileText,
   Layout,
-  Star
+  Star,
+  Mail
 } from 'lucide-react';
 import { HomePreview } from '../components/HomePreview';
 import { SortableImageGrid } from '../components/SortableImageGrid';
+import NewsletterManager from '../components/NewsletterManager';
 import { GoogleMap } from '../components/GoogleMap';
 import { HostingSettings } from '../components/HostingSettings';
 import { usePropertyStore, Property } from '../stores/propertyStore';
@@ -164,7 +166,7 @@ const DEFAULT_HOMEPAGE: HomepageSettings = {
 
 export function PageManager() {
   const [activeProperty, setActiveProperty] = useState<string | null>(null);
-  const [editingMode, setEditingMode] = useState<'details' | 'slideshow' | 'location' | 'amenities' | 'hosting' | 'content' | 'homepage' | 'contact'>('details');
+  const [editingMode, setEditingMode] = useState<'details' | 'slideshow' | 'location' | 'amenities' | 'hosting' | 'content' | 'homepage' | 'contact' | 'newsletter'>('details');
   const [selectedPlaceType, setSelectedPlaceType] = useState<string | null>("restaurant");
   // Initialize homepage settings from localStorage or use defaults
   const [homepageSettings, setHomepageSettings] = useState<HomepageSettings>(() => {
@@ -508,6 +510,15 @@ const [showPreview, setShowPreview] = useState(false);
             >
               <Layout className="w-4 h-4" />
               Homepage
+            </button>
+            <button
+              onClick={() => setEditingMode('newsletter')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                editingMode === 'newsletter' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+              }`}
+            >
+              <Mail className="w-4 h-4" />
+              Newsletter
             </button>
           </div>
 
@@ -1901,6 +1912,13 @@ const [showPreview, setShowPreview] = useState(false);
                     Save Homepage Settings
                   </button>
                     </div>
+                  </div>
+                )}
+
+                {editingMode === 'newsletter' && (
+                  <div className="space-y-8">
+                    <h3 className="text-lg font-semibold mb-4">Newsletter Management</h3>
+                    <NewsletterManager />
                   </div>
                 )}
 

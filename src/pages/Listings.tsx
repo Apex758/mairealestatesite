@@ -3,6 +3,7 @@ import { PropertyCard } from '../components/PropertyCard';
 import { usePropertyStore } from '../stores/propertyStore';
 import { CurrencyConverter } from '../components/CurrencyConverter';
 import { useTranslate } from '../hooks/useTranslate';
+import { useGlobal } from '../contexts/GlobalContext';
 import { MapPin, Home, Bed, DollarSign, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 
 const locations = ['Dubai Marina', 'Downtown Dubai', 'Business Bay', 'Palm Jumeirah'];
@@ -10,6 +11,7 @@ const propertyTypes = ['Apartment', 'Penthouse', 'Villa', 'Townhouse'];
 
 export function Listings() {
   const { t } = useTranslate();
+  const { currency } = useGlobal();
   const properties = usePropertyStore(state => state.properties);
   const [filteredProperties, setFilteredProperties] = useState(properties);
   const [filters, setFilters] = useState({
@@ -77,6 +79,15 @@ export function Listings() {
     
     setFilteredProperties(result);
   }, [properties, filters]);
+
+  // Reset price filters when currency changes
+  useEffect(() => {
+    setFilters(prev => ({
+      ...prev,
+      minPrice: '',
+      maxPrice: ''
+    }));
+  }, [currency]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
@@ -205,7 +216,9 @@ export function Listings() {
                       >
                         <option value="" className="bg-white dark:bg-gray-800">{t('noMin')}</option>
                         {['500,000', '750,000', '1,000,000', '1,500,000', '2,000,000', '5,000,000', '10,000,000'].map(price => (
-                          <option key={price} value={price} className="bg-white dark:bg-gray-800">${price}</option>
+                          <option key={price} value={price} className="bg-white dark:bg-gray-800">
+                            {currency === 'BTC' ? '₿' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : currency === 'USDT' ? 'USDT ' : currency}{price}
+                          </option>
                         ))}
                       </select>
                       <select 
@@ -215,7 +228,9 @@ export function Listings() {
                       >
                         <option value="" className="bg-white dark:bg-gray-800">{t('noMax')}</option>
                         {['1,000,000', '1,500,000', '2,000,000', '3,000,000', '5,000,000', '10,000,000', '20,000,000'].map(price => (
-                          <option key={price} value={price} className="bg-white dark:bg-gray-800">${price}</option>
+                          <option key={price} value={price} className="bg-white dark:bg-gray-800">
+                            {currency === 'BTC' ? '₿' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : currency === 'USDT' ? 'USDT ' : currency}{price}
+                          </option>
                         ))}
                       </select>
                     </div>

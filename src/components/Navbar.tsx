@@ -19,6 +19,7 @@ export function Navbar() {
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -207,7 +208,211 @@ export function Navbar() {
             MAI<span className="font-medium">REALESTATE</span>
           </Link>
           
-          {/* Right Actions */}
+          {/* Mobile Menu Button */}
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {isMobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+
+          {/* Mobile Menu */}
+          <div className={`md:hidden fixed inset-0 z-50 transform ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 ease-in-out`}>
+            <div className="absolute inset-0 bg-black/50" onClick={() => setIsMobileMenuOpen(false)} />
+            <div className="absolute right-0 h-full w-64 bg-white dark:bg-gray-900 shadow-xl">
+              <div className="p-4 space-y-4">
+                <Link 
+                  to="/listings" 
+                  className="block px-4 py-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t('listings')}
+                </Link>
+                <Link 
+                  to="/about" 
+                  className="block px-4 py-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {t('aboutUs')}
+                </Link>
+                <Link 
+                  to="/bitcoin" 
+                  className="block px-4 py-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <div className="flex items-center gap-2">
+                    <Bitcoin className="w-4 h-4" />
+                    {t('bitcoin')}
+                  </div>
+                </Link>
+                <Link 
+                  to="/contact" 
+                  className="block px-4 py-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    {t('contact')}
+                  </div>
+                </Link>
+
+                {/* Language Selector */}
+                <div className="px-4 py-2">
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 mb-2">
+                    <Globe className="w-4 h-4" />
+                    <span>Language</span>
+                  </div>
+                  <div className="space-y-2">
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => {
+                          setLanguage(lang.code as 'en' | 'ar' | 'ro');
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={`block w-full text-left px-4 py-2 rounded ${
+                          language === lang.code
+                            ? 'bg-amber-500 text-white'
+                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        }`}
+                      >
+                        {lang.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Currency Selector */}
+                <div className="px-4 py-2">
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 mb-2">
+                    <Coins className="w-4 h-4" />
+                    <span>Currency</span>
+                  </div>
+                  <div className="space-y-2">
+                    {currencies.map((curr) => (
+                      <button
+                        key={curr}
+                        onClick={() => {
+                          setCurrency(curr as 'AED' | 'USD' | 'USDT' | 'BTC' | 'EUR' | 'GBP' | 'RON' | 'NGN');
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={`block w-full text-left px-4 py-2 rounded ${
+                          currency === curr
+                            ? 'bg-amber-500 text-white'
+                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        }`}
+                      >
+                        {curr}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Auth Section */}
+                {isAuthenticated ? (
+                  <div className="px-4 py-2 space-y-2">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      Signed in as <span className="font-medium text-gray-900 dark:text-white">{user?.email}</span>
+                    </div>
+                    {user?.email === ADMIN_EMAIL ? (
+                      <Link
+                        to="/page-manager"
+                        className="block w-full px-4 py-2 rounded text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Settings className="w-4 h-4" />
+                          <span>{t('pageManager')}</span>
+                        </div>
+                      </Link>
+                    ) : (
+                      <>
+                        <Link
+                          to="/dashboard"
+                          className="block w-full px-4 py-2 rounded text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Home className="w-4 h-4" />
+                            <span>Dashboard</span>
+                          </div>
+                        </Link>
+                        <Link
+                          to="/favorites"
+                          className="block w-full px-4 py-2 rounded text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Heart className="w-4 h-4" />
+                            <span>{t('favorites')}</span>
+                          </div>
+                        </Link>
+                        <Link
+                          to="/messages"
+                          className="block w-full px-4 py-2 rounded text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <MessageCircle className="w-4 h-4" />
+                            <span>{t('messages')}</span>
+                          </div>
+                        </Link>
+                      </>
+                    )}
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="block w-full px-4 py-2 rounded text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      <div className="flex items-center gap-2">
+                        <LogIn className="w-4 h-4 rotate-180" />
+                        <span>{t('logout')}</span>
+                      </div>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="px-4 py-2 space-y-2">
+                    <button
+                      onClick={() => {
+                        setShowLoginForm(true);
+                        setShowAuthDropdown(true);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="block w-full px-4 py-2 rounded text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      <div className="flex items-center gap-2">
+                        <LogIn className="w-4 h-4" />
+                        <span>{t('login')}</span>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowRegisterForm(true);
+                        setShowAuthDropdown(true);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="block w-full px-4 py-2 rounded text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      <div className="flex items-center gap-2">
+                        <UserPlus className="w-4 h-4" />
+                        <span>{t('createAccount')}</span>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-4">
             {/* <DarkModeToggle /> */} 
 

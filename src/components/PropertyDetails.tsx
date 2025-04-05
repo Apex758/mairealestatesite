@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog } from '@headlessui/react';
 import { PropertyCard } from './PropertyCard';
 import { GoogleMap, NearbyPlace } from './GoogleMap';
-import { Store, Utensils, Building2, School, Train, Sparkle as Park, MapPin, Plus, Heart, Briefcase, Sparkles } from 'lucide-react';
+import { Store, Utensils, Building2, School, Train, Sparkle as Park, MapPin, Plus, Heart, Briefcase, Sparkles, MessageCircle } from 'lucide-react';
 import { useTranslate } from '../hooks/useTranslate';
 import { TranslationKey } from '../translations';
 import { useGlobal } from '../contexts/GlobalContext';
@@ -197,6 +197,15 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
   // Set a flag for read-only mode - always true for PropertyDetails
   // This ensures the location can't be changed from PropertyDetails
   const readOnly = true;
+  
+  // WhatsApp number
+  const whatsappNumber = '+971522292717';
+  
+  // Generate WhatsApp link with pre-filled message about this property
+  const getWhatsAppLink = () => {
+    const text = `Hello MAI Real Estate, I'm interested in the property "${name}" (ID: ${id}). Please provide more information.`;
+    return `https://wa.me/${whatsappNumber.replace(/\+/g, '')}?text=${encodeURIComponent(text)}`;
+  };
 
   const distances = location?.distances || [];
 
@@ -384,16 +393,31 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
           <div className="flex-1 h-px bg-gradient-to-r from-transparent via-amber-200 dark:via-amber-700 to-transparent" />
           <h2 className="text-3xl font-extralight text-gray-900 dark:text-white tracking-wide">{t('propertyDetails')}</h2>
           
-          {/* Favorite button with luxury styling */}
-          <button 
-            onClick={handleFavoriteToggle}
-            className="flex items-center justify-center p-2.5 rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg border border-amber-100 dark:border-amber-900/50 hover:border-amber-300 dark:hover:border-amber-700 transition-all transform hover:scale-105"
-            aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
-          >
-            <Heart 
-              className={`w-6 h-6 ${isFavorited ? 'text-amber-500 fill-current' : 'text-gray-400 dark:text-gray-500 hover:text-amber-400'}`} 
-            />
-          </button>
+          <div className="flex items-center gap-3">
+            {/* WhatsApp button */}
+            <a 
+              href={getWhatsAppLink()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center p-2.5 rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg border border-green-100 dark:border-green-900/50 hover:border-green-300 dark:hover:border-green-700 transition-all transform hover:scale-105"
+              aria-label="Contact via WhatsApp"
+            >
+              <MessageCircle 
+                className="w-6 h-6 text-green-500 dark:text-green-400" 
+              />
+            </a>
+            
+            {/* Favorite button with luxury styling */}
+            <button 
+              onClick={handleFavoriteToggle}
+              className="flex items-center justify-center p-2.5 rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg border border-amber-100 dark:border-amber-900/50 hover:border-amber-300 dark:hover:border-amber-700 transition-all transform hover:scale-105"
+              aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+            >
+              <Heart 
+                className={`w-6 h-6 ${isFavorited ? 'text-amber-500 fill-current' : 'text-gray-400 dark:text-gray-500 hover:text-amber-400'}`} 
+              />
+            </button>
+          </div>
         </div>
 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Luxury card with gold accents */}
@@ -479,7 +503,7 @@ const [activeImageIndex, setActiveImageIndex] = useState(0);
         </div>
       </div>
 
-      {/* Features & Amenities Section */}
+      {/* Features & Amenities Section - Only show if at least one feature is selected */}
       {(features.residences.length > 0 || features.luxuryWellness.length > 0 || features.retailDining.length > 0) && (
         <div className="mb-20">
           {/* Elegant section header with gold accents */}

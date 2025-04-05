@@ -99,12 +99,7 @@ export function VipAccess() {
           <h2 className="text-3xl font-light mb-2">For bespoke consultations</h2>
           <p className="text-xl text-amber-300 mb-12">Contact our private client advisory team</p>
           
-          <a 
-            href="mailto:William@mairealestate.ae" 
-            className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white px-10 py-4 rounded-full hover:from-amber-600 hover:to-amber-700 transition-all group shadow-lg shadow-amber-900/20"
-          >
-            <span className="tracking-wider">William@mairealestate.ae</span>
-          </a>
+          <p className="text-gray-400 mb-12">Submit the form below to connect with our private client advisory team.</p>
           
           <div className="mt-24 p-10 border border-gray-800 rounded-xl bg-gradient-to-br from-gray-900 to-black shadow-2xl">
             <h3 className="text-2xl font-light mb-2">Qualification Process</h3>
@@ -113,13 +108,40 @@ export function VipAccess() {
               To maintain the exclusivity of our VIP portfolio, all potential clients must complete a qualification process including proof of funds verification.
             </p>
             
-            <form className="space-y-8">
+            <form className="space-y-8" onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              try {
+                const response = await fetch('http://localhost:3001/api/vip-inquiry', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    name: formData.get('name'),
+                    email: formData.get('email'),
+                    investmentCapacity: formData.get('investmentCapacity'),
+                    to: import.meta.env.VITE_VIP_EMAIL || ''
+                  })
+                });
+                
+                if (response.ok) {
+                  alert('Thank you for your interest. Our private client advisory team will contact you shortly.');
+                  e.currentTarget.reset();
+                } else {
+                  alert('Failed to submit inquiry. Please try again.');
+                }
+              } catch (error) {
+                console.error('Failed to submit VIP inquiry:', error);
+                alert('Failed to connect to server. Please try again later.');
+              }
+            }}>
               <div className="group">
                 <label className="block text-sm font-medium text-amber-300 mb-2 tracking-wider">
                   Full Name
                 </label>
                 <input
                   type="text"
+                  name="name"
+                  required
                   className="w-full px-4 py-3 bg-transparent border-b border-gray-700 focus:border-amber-500 outline-none transition-colors text-white placeholder-gray-600"
                   placeholder="Enter your full name"
                 />
@@ -131,6 +153,8 @@ export function VipAccess() {
                 </label>
                 <input
                   type="email"
+                  name="email"
+                  required
                   className="w-full px-4 py-3 bg-transparent border-b border-gray-700 focus:border-amber-500 outline-none transition-colors text-white placeholder-gray-600"
                   placeholder="Enter your email address"
                 />
@@ -140,7 +164,11 @@ export function VipAccess() {
                 <label className="block text-sm font-medium text-amber-300 mb-2 tracking-wider">
                   Investment Capacity
                 </label>
-                <select className="w-full px-4 py-3 bg-transparent border-b border-gray-700 focus:border-amber-500 outline-none transition-colors text-white appearance-none">
+                <select 
+                  name="investmentCapacity"
+                  required
+                  className="w-full px-4 py-3 bg-transparent border-b border-gray-700 focus:border-amber-500 outline-none transition-colors text-white appearance-none"
+                >
                   <option className="bg-gray-900">$10M - $25M</option>
                   <option className="bg-gray-900">$25M - $50M</option>
                   <option className="bg-gray-900">$50M - $100M</option>

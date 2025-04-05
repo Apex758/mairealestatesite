@@ -25,6 +25,15 @@ export function Messages() {
     setIsVisible(true);
   }, []);
   
+  // WhatsApp number
+  const whatsappNumber = '+971522292717';
+  
+  // Generate WhatsApp link with pre-filled message
+  const getWhatsAppLink = () => {
+    const text = `Hello MAI Real Estate, I'm interested in learning more about your properties.`;
+    return `https://wa.me/${whatsappNumber.replace(/\+/g, '')}?text=${encodeURIComponent(text)}`;
+  };
+  
   // Translation state
   const [translatedContent, setTranslatedContent] = useState({
     messages: getTranslation('messages', language),
@@ -40,7 +49,8 @@ export function Messages() {
     dashboard: 'Dashboard',
     allMessagesMarkedRead: 'All messages marked as read',
     reply: 'Reply',
-    markAsRead: 'Mark as Read'
+    markAsRead: 'Mark as Read',
+    contactViaWhatsApp: 'Contact via WhatsApp'
   });
   
   // Update translations when language changes
@@ -63,7 +73,8 @@ export function Messages() {
           dashboard: await translateText('Dashboard', language),
           allMessagesMarkedRead: await translateText('All messages marked as read', language),
           reply: await translateText('Reply', language),
-          markAsRead: await translateText('Mark as Read', language)
+          markAsRead: await translateText('Mark as Read', language),
+          contactViaWhatsApp: await translateText('Contact via WhatsApp', language)
         };
         
         setTranslatedContent(translated);
@@ -152,6 +163,15 @@ export function Messages() {
               </div>
               
               <div className="flex items-center gap-3">
+                <a 
+                  href={getWhatsAppLink()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition-all"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>{translatedContent.contactViaWhatsApp}</span>
+                </a>
                 <button
                   onClick={markAllAsRead}
                   className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-full hover:from-amber-600 hover:to-amber-700 transition-all shadow-lg shadow-amber-900/20"

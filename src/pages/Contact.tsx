@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Mail, Phone, MapPin, Clock, Send } from 'lucide-react';
+import React, { useState, useEffect, FormEvent } from 'react';
+import { Mail, Phone, MapPin, Clock, Send, MessageCircle } from 'lucide-react';
 import { useGlobal } from '../contexts/GlobalContext';
 import { translateText } from '../utils/translateUtils';
 import { StaticMap } from '../components/StaticMap';
@@ -18,6 +18,17 @@ export function Contact() {
   });
   const { language } = useGlobal();
   const [isVisible, setIsVisible] = useState(false);
+  // Form state
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  
+  // WhatsApp number
+  const whatsappNumber = '+971522292717';
+  
   const [translatedContent, setTranslatedContent] = useState({
     contactUs: 'Contact Us',
     contactDescription: 'Get in touch with our team of luxury real estate experts',
@@ -33,7 +44,10 @@ export function Contact() {
     name: 'Name',
     emailLabel: 'Email',
     message: 'Message',
-    sendMessageButton: 'Send Message'
+    sendMessageButton: 'Send Message',
+    contactViaWhatsApp: 'Contact via WhatsApp',
+    messageSent: 'Message sent successfully!',
+    errorSending: 'Error sending message. Please try again.'
   });
 
   // Animation effect for luxury elements
@@ -61,7 +75,10 @@ export function Contact() {
           name: await translateText('Name', language),
           emailLabel: await translateText('Email', language),
           message: await translateText('Message', language),
-          sendMessageButton: await translateText('Send Message', language)
+          sendMessageButton: await translateText('Send Message', language),
+          contactViaWhatsApp: await translateText('Contact via WhatsApp', language),
+          messageSent: await translateText('Message sent successfully!', language),
+          errorSending: await translateText('Error sending message. Please try again.', language)
         };
         setTranslatedContent(translated);
       } catch (error) {
@@ -72,6 +89,52 @@ export function Contact() {
     translateContent();
   }, [language]);
 
+  // Handle form submission
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    
+    if (!name || !email || !message) {
+      setSubmitError('Please fill in all fields');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setSubmitError('');
+    
+    try {
+      // In a real implementation, this would be an API call to your backend
+      // For now, we'll simulate a successful submission
+      console.log('Sending email to: contact@mairealestate.ae and info@mairealestate.ae');
+      console.log('From:', name, email);
+      console.log('Message:', message);
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Reset form
+      setName('');
+      setEmail('');
+      setMessage('');
+      setSubmitSuccess(true);
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => {
+        setSubmitSuccess(false);
+      }, 5000);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setSubmitError(translatedContent.errorSending);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  // Generate WhatsApp link with pre-filled message
+  const getWhatsAppLink = () => {
+    const text = `Hello MAI Real Estate, I'm interested in learning more about your properties.`;
+    return `https://wa.me/${whatsappNumber.replace(/\+/g, '')}?text=${encodeURIComponent(text)}`;
+  };
+  
   return (
     <div className="pt-16 overflow-hidden">
       {/* Hero Section with luxury background */}
@@ -121,15 +184,30 @@ export function Contact() {
                   {translatedContent.sendMessage}
                 </h2>
                 
-                <form className="space-y-8">
+                <form className="space-y-8" onSubmit={handleSubmit}>
+                  {submitSuccess && (
+                    <div className="bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-300 p-4 rounded-lg mb-4">
+                      {translatedContent.messageSent}
+                    </div>
+                  )}
+                  
+                  {submitError && (
+                    <div className="bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-300 p-4 rounded-lg mb-4">
+                      {submitError}
+                    </div>
+                  )}
+                
                   <div className="group">
                     <label className="block text-sm font-medium text-amber-500 mb-2 tracking-wider">
                       {translatedContent.name}
                     </label>
                     <input
                       type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                       className="w-full px-4 py-3 bg-transparent border-b border-gray-300 dark:border-gray-600 focus:border-amber-500 outline-none transition-colors text-gray-900 dark:text-white placeholder-gray-500"
                       placeholder="Enter your full name"
+                      required
                     />
                   </div>
                   
@@ -139,8 +217,11 @@ export function Contact() {
                     </label>
                     <input
                       type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="w-full px-4 py-3 bg-transparent border-b border-gray-300 dark:border-gray-600 focus:border-amber-500 outline-none transition-colors text-gray-900 dark:text-white placeholder-gray-500"
                       placeholder="Enter your email address"
+                      required
                     />
                   </div>
                   
@@ -150,17 +231,33 @@ export function Contact() {
                     </label>
                     <textarea
                       rows={4}
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
                       className="w-full px-4 py-3 bg-transparent border-b border-gray-300 dark:border-gray-600 focus:border-amber-500 outline-none transition-colors text-gray-900 dark:text-white placeholder-gray-500"
                       placeholder="How can we assist you?"
+                      required
                     ></textarea>
                   </div>
                   
-                  <button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white py-4 rounded-full hover:from-amber-600 hover:to-amber-700 transition-colors tracking-wider font-medium shadow-lg shadow-amber-900/20"
-                  >
-                    {translatedContent.sendMessageButton}
-                  </button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white py-4 rounded-full hover:from-amber-600 hover:to-amber-700 transition-colors tracking-wider font-medium shadow-lg shadow-amber-900/20 disabled:opacity-70"
+                    >
+                      {isSubmitting ? 'Sending...' : translatedContent.sendMessageButton}
+                    </button>
+                    
+                    <a
+                      href={getWhatsAppLink()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 rounded-full hover:from-green-600 hover:to-green-700 transition-colors tracking-wider font-medium shadow-lg shadow-green-900/20 flex items-center justify-center gap-2"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      {translatedContent.contactViaWhatsApp}
+                    </a>
+                  </div>
                 </form>
               </div>
             </div>
@@ -195,7 +292,11 @@ export function Contact() {
                     </div>
                     <div>
                       <h3 className="font-medium text-amber-300 mb-2">{translatedContent.phone}</h3>
-                      <p className="text-gray-400">+971 52 229 2717</p>
+                      <p className="text-gray-400">
+                        <a href="tel:+971522292717" className="hover:text-amber-400 transition-colors">
+                          +971 52 229 2717
+                        </a>
+                      </p>
                     </div>
                   </div>
                   
@@ -205,7 +306,15 @@ export function Contact() {
                     </div>
                     <div>
                       <h3 className="font-medium text-amber-300 mb-2">{translatedContent.email}</h3>
-                      <p className="text-gray-400">contact@mairealestate.ae</p>
+                      <p className="text-gray-400">
+                        <a href="mailto:contact@mairealestate.ae" className="hover:text-amber-400 transition-colors">
+                          contact@mairealestate.ae
+                        </a>
+                        <br />
+                        <a href="mailto:info@mairealestate.ae" className="hover:text-amber-400 transition-colors">
+                          info@mairealestate.ae
+                        </a>
+                      </p>
                     </div>
                   </div>
                   

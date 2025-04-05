@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Heart, MapPin, Bed, Bath, Ruler, Home, Search, Filter, Tag, X, Star } from 'lucide-react';
+import { Heart, MapPin, Bed, Bath, Ruler, Home, Search, Filter, Tag, X, Star, MessageCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useUserStore } from '../stores/userStore';
@@ -24,6 +24,22 @@ export function Favorites() {
     setIsVisible(true);
   }, []);
   
+  // WhatsApp number
+  const whatsappNumber = '+971522292717';
+  
+  // Generate WhatsApp link with pre-filled message about selected properties
+  const getWhatsAppLink = (propertyId: string, propertyName: string) => {
+    const text = `Hello MAI Real Estate, I'm interested in the property "${propertyName}" (ID: ${propertyId}). Please provide more information.`;
+    return `https://wa.me/${whatsappNumber.replace(/\+/g, '')}?text=${encodeURIComponent(text)}`;
+  };
+  
+  // Generate WhatsApp link with all favorites
+  const getAllFavoritesWhatsAppLink = () => {
+    const propertiesList = favorites.map(p => `- ${p.name} (ID: ${p.id})`).join('\n');
+    const text = `Hello MAI Real Estate, I'm interested in the following properties from my favorites list:\n\n${propertiesList}\n\nPlease provide more information about these properties.`;
+    return `https://wa.me/${whatsappNumber.replace(/\+/g, '')}?text=${encodeURIComponent(text)}`;
+  };
+  
   // Tags for categorizing properties
   const tags = ['Luxury', 'Investment', 'Must See', 'Vacation', 'Family'];
   
@@ -47,7 +63,9 @@ export function Favorites() {
     sqft: 'sqft',
     view: 'View',
     viewDetails: 'View Details',
-    addedTagToProperty: 'Added "{0}" tag to property'
+    addedTagToProperty: 'Added "{0}" tag to property',
+    contactViaWhatsApp: 'Contact via WhatsApp',
+    contactAllViaWhatsApp: 'Contact about all favorites'
   });
   
   // Update translations when language changes
@@ -59,6 +77,8 @@ export function Favorites() {
         const translated = {
           favorites: getTranslation('favorites', language),
           dashboard: await translateText('Dashboard', language),
+          contactViaWhatsApp: await translateText('Contact via WhatsApp', language),
+          contactAllViaWhatsApp: await translateText('Contact about all favorites', language),
           pleaseLogin: await translateText('Please login to view your favorites', language),
           goToHome: await translateText('Go to Home', language),
           noFavorites: await translateText('You haven\'t added any properties to your favorites yet.', language),
@@ -177,13 +197,27 @@ export function Favorites() {
                 </div>
               </div>
               
-              <Link 
-                to="/dashboard" 
-                className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-gray-300 rounded-full hover:bg-gray-700 transition-all"
-              >
-                <Home className="w-4 h-4" />
-                <span>{translatedContent.dashboard}</span>
-              </Link>
+              <div className="flex items-center gap-3">
+                {favorites.length > 0 && (
+                  <a 
+                    href={getAllFavoritesWhatsAppLink()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition-all"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>{translatedContent.contactAllViaWhatsApp}</span>
+                  </a>
+                )}
+                
+                <Link 
+                  to="/dashboard" 
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-gray-300 rounded-full hover:bg-gray-700 transition-all"
+                >
+                  <Home className="w-4 h-4" />
+                  <span>{translatedContent.dashboard}</span>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -398,6 +432,18 @@ export function Favorites() {
                           {translatedContent.viewDetails}
                         </span>
                       </Link>
+                      
+                      <a 
+                        href={getWhatsAppLink(property.id, property.name)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 text-center px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-full hover:from-green-600 hover:to-green-700 transition-all shadow-lg shadow-green-900/10 group"
+                      >
+                        <span className="inline-flex items-center gap-2">
+                          <MessageCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                          {translatedContent.contactViaWhatsApp}
+                        </span>
+                      </a>
                     </div>
                   </div>
                 </div>
